@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor;
 
-[ExecuteInEditMode]
+[CreateAssetMenu]
 public class CusRPAsset : RenderPipelineAsset
 {
     #region public var
@@ -12,19 +12,18 @@ public class CusRPAsset : RenderPipelineAsset
     #endregion
     
     #region  private var
-    static string m_asset_path = @"Assets/RPAsset/CusRPAsset.asset";
+    //static string m_asset_path = @"Assets/RPAsset/CusRPAsset.asset";
 
-    //传递给CusRP的设置参数
     
     #endregion
 
     #region method
-    [MenuItem("CustomRP/Create A New Custom RenderPipeline")]
+    /*[MenuItem("CustomRP/Create A New Custom RenderPipeline")]
     static void CreateCusRPAsset()
     {
         RenderPipelineAsset rp_asset = new CusRPAsset();
         AssetDatabase.CreateAsset(rp_asset, m_asset_path);
-    }
+    }*/
     
     void FillRPParam(ref CusRP.CusRPParam param)
     {
