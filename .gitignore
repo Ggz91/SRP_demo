@@ -48,3 +48,106 @@ Corridor/Library/metadata/
 # OS generated #
 # ============ #
 ./Assets/Plugins/Sirenix
+Assets/Plugins/SirenixImp/Assemblies.meta
+Assets/Plugins/SirenixImp/Assemblies/link.xml
+Assets/Plugins/SirenixImp/Assemblies/link.xml.meta
+Assets/Plugins/SirenixImp/Assemblies/NoEditor.meta
+Assets/Plugins/SirenixImp/Assemblies/NoEditor/Sirenix.Serialization.dll
+Assets/Plugins/SirenixImp/Assemblies/NoEditor/Sirenix.Serialization.dll.mdb
+Assets/Plugins/SirenixImp/Assemblies/NoEditor/Sirenix.Serialization.dll.mdb.meta
+Assets/Plugins/SirenixImp/Assemblies/NoEditor/Sirenix.Serialization.dll.meta
+Assets/Plugins/SirenixImp/Assemblies/NoEditor/Sirenix.Utilities.dll
+Assets/Plugins/SirenixImp/Assemblies/NoEditor/Sirenix.Utilities.dll.mdb
+Assets/Plugins/SirenixImp/Assemblies/NoEditor/Sirenix.Utilities.dll.mdb.meta
+Assets/Plugins/SirenixImp/Assemblies/NoEditor/Sirenix.Utilities.dll.meta
+Assets/Plugins/SirenixImp/Assemblies/NoEmitAndNoEditor.meta
+Assets/Plugins/SirenixImp/Assemblies/NoEmitAndNoEditor/Sirenix.Serialization.dll
+Assets/Plugins/SirenixImp/Assemblies/NoEmitAndNoEditor/Sirenix.Serialization.dll.mdb
+Assets/Plugins/SirenixImp/Assemblies/NoEmitAndNoEditor/Sirenix.Serialization.dll.mdb.meta
+Assets/Plugins/SirenixImp/Assemblies/NoEmitAndNoEditor/Sirenix.Serialization.dll.meta
+Assets/Plugins/SirenixImp/Assemblies/NoEmitAndNoEditor/Sirenix.Utilities.dll
+Assets/Plugins/SirenixImp/Assemblies/NoEmitAndNoEditor/Sirenix.Utilities.dll.mdb
+Assets/Plugins/SirenixImp/Assemblies/NoEmitAndNoEditor/Sirenix.Utilities.dll.mdb.meta
+Assets/Plugins/SirenixImp/Assemblies/NoEmitAndNoEditor/Sirenix.Utilities.dll.meta
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.OdinInspector.Attributes.dll
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.OdinInspector.Attributes.dll.mdb
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.OdinInspector.Attributes.dll.mdb.meta
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.OdinInspector.Attributes.dll.meta
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.OdinInspector.Attributes.xml
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.OdinInspector.Attributes.xml.meta
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.OdinInspector.Editor.dll
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.OdinInspector.Editor.dll.mdb
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.OdinInspector.Editor.dll.mdb.meta
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.OdinInspector.Editor.dll.meta
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.OdinInspector.Editor.xml
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.OdinInspector.Editor.xml.meta
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Serialization.Config.dll
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Serialization.Config.dll.mdb
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Serialization.Config.dll.mdb.meta
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Serialization.Config.dll.meta
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Serialization.Config.xml
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Serialization.Config.xml.meta
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Serialization.dll
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Serialization.dll.mdb
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Serialization.dll.mdb.meta
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Serialization.dll.meta
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Utilities.dll
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Utilities.dll.mdb
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Utilities.dll.mdb.meta
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Utilities.dll.meta
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Utilities.Editor.dll
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Utilities.Editor.dll.mdb
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Utilities.Editor.dll.mdb.meta
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Utilities.Editor.dll.meta
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Utilities.Editor.xml
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Utilities.Editor.xml.meta
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Utilities.xml
+Assets/Plugins/SirenixImp/Assemblies/Sirenix.Utilities.xml.meta
+Assets/Plugins/SirenixImp/Demos.meta
+Assets/Plugins/SirenixImp/Demos/Custom Attribute Processors.unitypackage.meta
+Assets/Plugins/SirenixImp/Demos/Custom Drawers.unitypackage.meta
+Assets/Plugins/SirenixImp/Demos/Editor Windows.unitypackage.meta
+Assets/Plugins/SirenixImp/Demos/Sample - RPG Editor.unitypackage.meta
+Assets/Plugins/SirenixImp/Odin Inspector.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Assets.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Assets/Editor.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Assets/Editor/Odin Inspector Logo.png
+Assets/Plugins/SirenixImp/Odin Inspector/Assets/Editor/Odin Inspector Logo.png.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Assets/Editor/OdinPathLookup.asset
+Assets/Plugins/SirenixImp/Odin Inspector/Assets/Editor/OdinPathLookup.asset.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Config.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Config/Editor.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Config/Editor/GeneralDrawerConfig.asset
+Assets/Plugins/SirenixImp/Odin Inspector/Config/Editor/GeneralDrawerConfig.asset.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Config/Editor/InspectorConfig.asset
+Assets/Plugins/SirenixImp/Odin Inspector/Config/Editor/InspectorConfig.asset.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/AssemblyImportSettingsAutomation.cs
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/AssemblyImportSettingsAutomation.cs.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/BuildAOTAutomation.cs
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/BuildAOTAutomation.cs.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/EnsureOdinInspectorDefine.cs
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/EnsureOdinInspectorDefine.cs.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/FixBrokenUnityObjectWrapperDrawer.cs
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/FixBrokenUnityObjectWrapperDrawer.cs.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/Sirenix.OdinInspector.CompatibilityLayer.Editor.asmdef
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/Sirenix.OdinInspector.CompatibilityLayer.Editor.asmdef.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/SyncListDrawer.cs
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/SyncListDrawer.cs.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/SyncVarAttributeDrawer.cs
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/SyncVarAttributeDrawer.cs.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/Vector2IntMinMaxAttributeDrawer.cs
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/Vector2IntMinMaxAttributeDrawer.cs.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/VectorIntDrawers.cs
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/VectorIntDrawers.cs.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/VectorIntPropertyResolvers.cs
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Editor/VectorIntPropertyResolvers.cs.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/SerializedNetworkBehaviour.cs
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/SerializedNetworkBehaviour.cs.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Sirenix.OdinInspector.CompatibilityLayer.asmdef
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/Sirenix.OdinInspector.CompatibilityLayer.asmdef.meta
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/VectorIntFormatters.cs
+Assets/Plugins/SirenixImp/Odin Inspector/Scripts/VectorIntFormatters.cs.meta
+Assets/Plugins/SirenixImp/Readme.txt
+Assets/Plugins/SirenixImp/Readme.txt.meta
