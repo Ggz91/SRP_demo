@@ -85,6 +85,7 @@ public class CusRP : RenderPipeline
             context.SetupCameraProperties(cam);
      
             CommandBuffer cmd = CommandBufferPool.Get(cam.name);
+            cmd.Clear();
             using (new ProfilingSample(cmd, "Render Begin"))
             {
                 cmd.ClearRenderTarget(true,true, m_param.ClearColor);
