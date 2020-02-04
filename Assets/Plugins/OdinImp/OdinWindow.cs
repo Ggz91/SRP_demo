@@ -12,10 +12,11 @@ public class OdinPluginWindow : OdinMenuEditorWindow
     {
         GetWindow<OdinPluginWindow>().Show();
     }
-    InitSceneUtilEditorComponent m_init_scene_component = new InitSceneUtilEditorComponent();
+    static InitSceneUtilEditorComponent m_init_scene_component = new InitSceneUtilEditorComponent();
+    static OdinMenuTree tree = new OdinMenuTree();
     protected override OdinMenuTree BuildMenuTree()
     {
-        var tree = new OdinMenuTree();
+        //var tree = new OdinMenuTree();
         tree.Selection.SupportsMultiSelect = false;
         tree.Add("InitScene", m_init_scene_component);
         return tree;

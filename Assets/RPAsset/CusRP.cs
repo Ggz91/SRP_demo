@@ -10,41 +10,67 @@ public class CusRP : RenderPipeline
     public struct CusRPParam
     {
         public Color ClearColor;
+        public bool SRPBatcher;
+        public bool GPUInstancing;
     }
-    CusRPParam m_param ;
+    CusRPParam m_param;
     Material m_error_mat;
     #endregion 
     #region public method
-    public void Setup(in CusRPParam param )
+    public void Setup(in CusRPParam param)
     {
         m_param = param;
     }
 
     #endregion
-    
+
+    //添加支持的pass名称
+    ShaderTagId[] GenSupportShaderID()
+    {
+        ShaderTagId[] res =
+        {
+           // new ShaderTagId("SRPDefaultUnlit"),
+           new ShaderTagId("CusRP"),
+        };
+        return res;
+    }
+    void InitDrawSettings(ref DrawingSettings drawing_setting)
+    {
+        ShaderTagId[] shaders = GenSupportShaderID();
+        for (int i = 0; i < shaders.Length; ++i)
+        {
+            drawing_setting.SetShaderPassName(i, shaders[i]);
+        }
+        drawing_setting.enableDynamicBatching = !m_param.GPUInstancing;
+        drawing_setting.enableInstancing = m_param.GPUInstancing;
+    }
     void DrawOpaque(ScriptableRenderContext context, SortingSettings sortingSettings, CullingResults cull_res)
     {
         sortingSettings.criteria = SortingCriteria.CommonOpaque;
-        DrawingSettings draw_setting = new DrawingSettings(new ShaderTagId("SRPDefaultUnlit"), sortingSettings);
+        DrawingSettings draw_setting = new DrawingSettings();
+        draw_setting.sortingSettings = sortingSettings;
+        InitDrawSettings(ref draw_setting);
         FilteringSettings filter_setting = new FilteringSettings(RenderQueueRange.opaque);
         context.DrawRenderers(cull_res, ref draw_setting, ref filter_setting);
     }
-    
+
     void DrawTransparent(ScriptableRenderContext context, SortingSettings sortingSettings, CullingResults cull_res)
     {
         sortingSettings.criteria = SortingCriteria.CommonTransparent;
-        DrawingSettings draw_setting = new DrawingSettings(new ShaderTagId("SRPDefaultUnlit"), sortingSettings);
+        DrawingSettings draw_setting = new DrawingSettings();
+        draw_setting.sortingSettings = sortingSettings;
+        InitDrawSettings(ref draw_setting);
         FilteringSettings filter_setting = new FilteringSettings(RenderQueueRange.transparent);
         context.DrawRenderers(cull_res, ref draw_setting, ref filter_setting);
     }
 
     void DrawUnSupportedShader(ScriptableRenderContext context, SortingSettings sortingSettings, CullingResults cull_res)
     {
-        #if !UNITY_EDITOR
+#if !UNITY_EDITOR
         return;
-        #endif
+#endif
 
-        if(null == m_error_mat)
+        if (null == m_error_mat)
         {
             m_error_mat = new Material(Shader.Find("Hidden/InternalErrorShader"));
         }
@@ -52,16 +78,17 @@ public class CusRP : RenderPipeline
         sortingSettings.criteria = SortingCriteria.CommonTransparent;
         ShaderTagId[] unsupported_shader_tag_ids = {
             new ShaderTagId("Always"),
-		    new ShaderTagId("ForwardBase"),
-		    new ShaderTagId("PrepassBase"),
-		    new ShaderTagId("Vertex"),
-		    new ShaderTagId("VertexLMRGBM"),
-		    new ShaderTagId("VertexLM")};
+            new ShaderTagId("ForwardBase"),
+            new ShaderTagId("PrepassBase"),
+            new ShaderTagId("Vertex"),
+            new ShaderTagId("VertexLMRGBM"),
+            new ShaderTagId("VertexLM"),
+            };
         DrawingSettings drawingSettings = new DrawingSettings(unsupported_shader_tag_ids[0], sortingSettings)
         {
             overrideMaterial = m_error_mat
         };
-        for(int i = 1; i<unsupported_shader_tag_ids.Length; ++i)
+        for (int i = 1; i < unsupported_shader_tag_ids.Length; ++i)
         {
             drawingSettings.SetShaderPassName(i, unsupported_shader_tag_ids[i]);
         }
@@ -70,7 +97,7 @@ public class CusRP : RenderPipeline
     }
     void DrawGizmos(ScriptableRenderContext context, Camera cam)
     {
-        if(Handles.ShouldRenderGizmos())
+        if (Handles.ShouldRenderGizmos())
         {
             context.DrawGizmos(cam, GizmoSubset.PreImageEffects);
             context.DrawGizmos(cam, GizmoSubset.PostImageEffects);
@@ -79,16 +106,16 @@ public class CusRP : RenderPipeline
     void RenderSingleCamera(ScriptableRenderContext context, Camera cam)
     {
         //cull
-        ScriptableCullingParameters  cull_param = new ScriptableCullingParameters();
-        if(cam.TryGetCullingParameters(out cull_param))
+        ScriptableCullingParameters cull_param = new ScriptableCullingParameters();
+        if (cam.TryGetCullingParameters(out cull_param))
         {
             context.SetupCameraProperties(cam);
-     
+
             CommandBuffer cmd = CommandBufferPool.Get(cam.name);
             cmd.Clear();
             using (new ProfilingSample(cmd, "Render Begin"))
             {
-                cmd.ClearRenderTarget(true,true, m_param.ClearColor);
+                cmd.ClearRenderTarget(true, true, m_param.ClearColor);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -118,11 +145,12 @@ public class CusRP : RenderPipeline
             Debug.Log("fail to cull , cam : " + cam.name);
         }
     }
-    
+
     #region inherit
     protected override void Render(ScriptableRenderContext context, Camera[] cameras)
     {
-        foreach(Camera cam in cameras)
+        GraphicsSettings.useScriptableRenderPipelineBatching = m_param.SRPBatcher;
+        foreach (Camera cam in cameras)
         {
             RenderSingleCamera(context, cam);
         }

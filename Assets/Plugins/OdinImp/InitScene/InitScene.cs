@@ -11,12 +11,12 @@ public class InitSceneUtilEditorComponent
     [MinValue(0)]
     public int Count = 10;
 
-    [LabelText("分布的范围 x: width y:length z:height")]
+    [LabelText("分布的范围 x: width y:height z:depth")]
     [LabelWidth(300)]
     [MinValue(0)]
     public Vector3 Area = new Vector3(10, 10, 10);
 
-    [TableList()]
+    [TableList(ShowIndexLabels = true)]
     public List<GameObject> ObjList = new List<GameObject>();
 
     List<GameObject> m_gen_objs = new List<GameObject>();

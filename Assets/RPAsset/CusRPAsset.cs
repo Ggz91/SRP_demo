@@ -9,12 +9,15 @@ public class CusRPAsset : RenderPipelineAsset
 {
     #region public var
     public Color ClearColor;
+    
+    public bool SRPBatcher;
+    public bool GPUInstancing;
     #endregion
     
     #region  private var
     //static string m_asset_path = @"Assets/RPAsset/CusRPAsset.asset";
 
-    
+    RenderPipeline rp = new CusRP();
     #endregion
 
     #region method
@@ -28,17 +31,32 @@ public class CusRPAsset : RenderPipelineAsset
     void FillRPParam(ref CusRP.CusRPParam param)
     {
         param.ClearColor = ClearColor;
+        param.SRPBatcher = SRPBatcher;
+        param.GPUInstancing = GPUInstancing;
     }
     #endregion
 
     #region inherited
     protected override RenderPipeline CreatePipeline()
     {
-        RenderPipeline rp = new CusRP();
+        if(null == rp || rp.disposed)
+        {
+            rp = new CusRP();
+        }
         CusRP.CusRPParam param = new CusRP.CusRPParam();
         FillRPParam(ref param);
         (rp as CusRP).Setup(param);
         return rp;
+    }
+    protected override void OnValidate()
+    {
+        if(null == rp || rp.disposed)
+        {
+            rp = new CusRP();
+        }
+        CusRP.CusRPParam param = new CusRP.CusRPParam();
+        FillRPParam(ref param);
+        (rp as CusRP).Setup(param);
     }
     #endregion
 }
