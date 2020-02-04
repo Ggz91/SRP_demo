@@ -15,6 +15,7 @@ public class BatchSetColorProps : MonoBehaviour
     }
     void SetPropertyBlock()
     {
+        return;
         MaterialPropertyBlock prop_block = new MaterialPropertyBlock();
         //场景中所有带mesh renderer的物体
         foreach(GameObject obj in UnityEngine.Object.FindObjectsOfType(typeof(GameObject)))
@@ -26,6 +27,8 @@ public class BatchSetColorProps : MonoBehaviour
             }
             
             prop_block.SetColor("_Col", GenRadomColor());
+            //设置位置
+            
             renderer.SetPropertyBlock(prop_block);
         }
     }

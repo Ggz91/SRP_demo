@@ -29,7 +29,7 @@ public class CusRP : RenderPipeline
     {
         ShaderTagId[] res =
         {
-           // new ShaderTagId("SRPDefaultUnlit"),
+           new ShaderTagId("SRPDefaultUnlit"),
            new ShaderTagId("CusRP"),
         };
         return res;
