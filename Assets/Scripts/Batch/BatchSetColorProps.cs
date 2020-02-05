@@ -34,7 +34,7 @@ public class BatchSetColorProps : MonoBehaviour
     }
     void SetRawColor()
     {
-        Texture texture = AssetDatabase.LoadAssetAtPath(@"Assets/Textures/Sphere Alpha Map.png", typeof(Texture)) as Texture;
+        Material default_mat = AssetDatabase.LoadAssetAtPath("Assets/Materials/CusLitMat.mat", typeof(Material)) as Material;
         foreach(GameObject obj in UnityEngine.Object.FindObjectsOfType(typeof(GameObject)))
         {
             MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
@@ -45,9 +45,19 @@ public class BatchSetColorProps : MonoBehaviour
             Shader shader = AssetDatabase.LoadAssetAtPath("Assets/Shaders/CusLitShader.shader", typeof(Shader)) as Shader;
             renderer.sharedMaterial = new Material(shader);
             renderer.sharedMaterial.SetColor("_Col", GenRadomColor());
-            renderer.sharedMaterial.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            renderer.sharedMaterial.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            renderer.sharedMaterial.SetTexture("_Tex",texture);
+            renderer.sharedMaterial.SetFloat("_SrcBlend", default_mat.GetFloat("_SrcBlend"));
+            renderer.sharedMaterial.SetFloat("_DstBlend", default_mat.GetFloat("_DstBlend"));
+            renderer.sharedMaterial.SetTexture("_Tex", default_mat.GetTexture("_Tex"));
+            renderer.sharedMaterial.SetFloat("_ZWrite", default_mat.GetFloat("_ZWrite"));
+            renderer.sharedMaterial.SetFloat("_Clip", default_mat.GetFloat("_Clip"));
+            if(default_mat.IsKeywordEnabled("_CLIPPING"))
+            {
+                renderer.sharedMaterial.EnableKeyword("_CLIPPING");
+            }
+            else
+            {
+                renderer.sharedMaterial.DisableKeyword("_CLIPPING");
+            }
         }
     }
     // Start is called before the first frame update

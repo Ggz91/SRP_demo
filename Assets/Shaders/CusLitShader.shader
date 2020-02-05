@@ -8,7 +8,9 @@ Shader "CusRP/CusUnlitShader"
         _Tex("Texture", 2D) = "white" {}
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", float) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend", float) = 0
-        [Enum(On, 0, Off, 1)] _ZWrite ("ZWrite", float) = 1 
+        [Enum(On, 1, Off, 0)] _ZWrite ("ZWrite", float) = 1 
+        [Toggle(_CLIPPING)] _Clipping("Use Clip", float) = 0
+        _Clip("Clip", Range(0.0, 1.0)) = 0.5
     }
     SubShader
     {
@@ -23,13 +25,14 @@ Shader "CusRP/CusUnlitShader"
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_instancing
-            
+            #pragma shader_feature _CLIPPING
+
             UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
                 UNITY_DEFINE_INSTANCED_PROP(fixed4, _Col)
             UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
            
             sampler2D _Tex;
-
+            float _Clip;
             struct indata
             {
                 float4 pos : POSITION;
@@ -61,9 +64,12 @@ Shader "CusRP/CusUnlitShader"
             }
             float4 frag(v2f indata) : SV_TARGET
             {
+                float4 tex_col = tex2D(_Tex, indata.uv.xy);
+                #if defined(_CLIPPING)
+                    clip(tex_col.a - _Clip);
+                #endif
                 UNITY_SETUP_INSTANCE_ID(indata);
                 float4 color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Col);
-                float4 tex_col = tex2D(_Tex, indata.uv.xy);
                 return color * tex_col;
             }
             ENDCG
