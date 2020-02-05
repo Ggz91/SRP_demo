@@ -1,6 +1,6 @@
 ﻿// Upgrade NOTE: replaced 'glstate_matrix_projection' with 'UNITY_MATRIX_P'
 
-Shader "CusRP/CusLitShader"
+Shader "CusRP/CusUnlitShader"
 {
     Properties
     {
