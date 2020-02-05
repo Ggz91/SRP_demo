@@ -34,6 +34,7 @@ public class BatchSetColorProps : MonoBehaviour
     }
     void SetRawColor()
     {
+        Texture texture = AssetDatabase.LoadAssetAtPath(@"Assets/Textures/Sphere Alpha Map.png", typeof(Texture)) as Texture;
         foreach(GameObject obj in UnityEngine.Object.FindObjectsOfType(typeof(GameObject)))
         {
             MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
@@ -44,6 +45,9 @@ public class BatchSetColorProps : MonoBehaviour
             Shader shader = AssetDatabase.LoadAssetAtPath("Assets/Shaders/CusLitShader.shader", typeof(Shader)) as Shader;
             renderer.sharedMaterial = new Material(shader);
             renderer.sharedMaterial.SetColor("_Col", GenRadomColor());
+            renderer.sharedMaterial.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            renderer.sharedMaterial.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            renderer.sharedMaterial.SetTexture("_Tex",texture);
         }
     }
     // Start is called before the first frame update

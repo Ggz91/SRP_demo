@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2b3a9f343b86a34e8b51e3079a198f6, type: 3}
   m_Name: CusRP
   m_EditorClassIdentifier: 
-  ClearColor: {r: 0.39215687, g: 0, b: 0, a: 0}
+  ClearColor: {r: 1, g: 1, b: 1, a: 0}
   DynamicBatcher: 0
-  SRPBatcher: 0
+  SRPBatcher: 1
   GPUInstancing: 0
