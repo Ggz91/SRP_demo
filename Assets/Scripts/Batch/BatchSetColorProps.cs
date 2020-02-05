@@ -34,7 +34,7 @@ public class BatchSetColorProps : MonoBehaviour
     }
     void SetRawColor()
     {
-        Material default_mat = AssetDatabase.LoadAssetAtPath("Assets/Materials/CusLitMat.mat", typeof(Material)) as Material;
+        Material default_mat = AssetDatabase.LoadAssetAtPath("Assets/Materials/CusUnlitMat.mat", typeof(Material)) as Material;
         foreach(GameObject obj in UnityEngine.Object.FindObjectsOfType(typeof(GameObject)))
         {
             MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
@@ -42,7 +42,7 @@ public class BatchSetColorProps : MonoBehaviour
             {
                 continue;
             }
-            Shader shader = AssetDatabase.LoadAssetAtPath("Assets/Shaders/CusLitShader.shader", typeof(Shader)) as Shader;
+            Shader shader = AssetDatabase.LoadAssetAtPath("Assets/Shaders/CusUnlitShader.shader", typeof(Shader)) as Shader;
             renderer.sharedMaterial = new Material(shader);
             renderer.sharedMaterial.SetColor("_Col", GenRadomColor());
             renderer.sharedMaterial.SetFloat("_SrcBlend", default_mat.GetFloat("_SrcBlend"));

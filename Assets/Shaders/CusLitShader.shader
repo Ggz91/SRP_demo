@@ -1,6 +1,6 @@
 ﻿// Upgrade NOTE: replaced 'glstate_matrix_projection' with 'UNITY_MATRIX_P'
 
-Shader "CusRP/CusUnlitShader"
+Shader "CusRP/CusLitShader"
 {
     Properties
     {
@@ -66,7 +66,7 @@ Shader "CusRP/CusUnlitShader"
             {
                 float4 tex_col = tex2D(_Tex, indata.uv.xy);
                 #if defined(_CLIPPING)
-                    clip(tex_col.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial,_Clip));
+                    clip(tex_col.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Clip));
                 #endif
                 UNITY_SETUP_INSTANCE_ID(indata);
                 float4 color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Col);
