@@ -16,6 +16,7 @@ struct Surface
     float smoothness;
     float metallic;
     float view_dir;
+    bool diffuse_use_alpha;
 };
 float PerceptualSmoothnessToPerceptualRoughness(float perceptualSmoothness)
 {
@@ -28,7 +29,8 @@ float PerceptualRoughnessToRoughness(float perceptualRoughness)
 float4 CalDiffuse(float4 light_dir, Surface surface)
 {
     float range = 1 - MIN_REFLECTIVITY;
-    return surface.color * range * (1 - surface.metallic);
+    float alpha = surface.diffuse_use_alpha ? surface.color.a : 1;
+    return surface.color * range * (1 - surface.metallic) * alpha;
 }
 
 float4 CalSpecular(Surface surface)

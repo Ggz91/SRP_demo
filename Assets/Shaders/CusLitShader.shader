@@ -13,6 +13,7 @@ Shader "CusRP/CusLitShader"
         _Clip("Clip", Range(0.0, 1.0)) = 0.5
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.8 
         _Metallic("Metallic", Range(0.0, 1.0)) = 0.8
+        [Toggle(_ALPHATODIFFUSE)] _AlphaToDiffuse("Apply alpha to diffuse", float) = 1
     }
     SubShader
     {
@@ -30,7 +31,7 @@ Shader "CusRP/CusLitShader"
             #pragma fragment frag
             #pragma multi_compile_instancing
             #pragma shader_feature _CLIPPING
-
+            #pragma shader_feature _ALPHATODIFFUSE
             UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
                 UNITY_DEFINE_INSTANCED_PROP(fixed4, _Col)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Clip)
@@ -78,6 +79,11 @@ Shader "CusRP/CusLitShader"
                 float4 color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Col) * tex_col;
                 //加入光照影响
                 Surface surface;
+                #if defined(_ALPHATODIFFUSE)
+                    surface.diffuse_use_alpha = true;
+                #else
+                    surface.diffuse_use_alpha = false;
+                #endif
                 surface.color = color;
                 surface.normal_ws = normalize( indata.normal_ws);
                 surface.view_dir = normalize(_WorldSpaceCameraPos -indata.pos_ws) ;
