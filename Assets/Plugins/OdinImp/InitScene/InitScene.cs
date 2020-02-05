@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Sirenix.OdinInspector;
+using UnityEditor;
+using System;
 
 public class InitSceneUtilEditorComponent
 {
@@ -19,6 +21,9 @@ public class InitSceneUtilEditorComponent
     [TableList(ShowIndexLabels = true)]
     public List<GameObject> ObjList = new List<GameObject>();
 
+    public bool m_use_lit = false;
+
+
     List<GameObject> m_gen_objs = new List<GameObject>();
     void ClearOldObjs()
     {
@@ -33,24 +38,73 @@ public class InitSceneUtilEditorComponent
         m_gen_objs.Clear();
     }
 
-    GameObject GenRadomSingleObj()
+    //材质相同
+    GameObject CloneRandomSingleObj()
     {
-        int obj_index = Random.Range(0, ObjList.Count);
+        int obj_index = UnityEngine.Random.Range(0, ObjList.Count);
         Vector3 pos = new Vector3()
         {
-            x = Random.Range(-Area.x,  Area.x),
-            y = Random.Range(-Area.y, Area.y),
-            z = Random.Range(-Area.z, Area.z)
+            x = UnityEngine.Random.Range(-Area.x,  Area.x),
+            y = UnityEngine.Random.Range(-Area.y, Area.y),
+            z = UnityEngine.Random.Range(-Area.z, Area.z)
         };
         Quaternion qua = new Quaternion()
         {
-            x = Random.Range(0.0f, 360f),
-            y = Random.Range(0.0f, 360f),
-            z = Random.Range(0.0f, 360f),
-            w = Random.Range(0.0f, 360f)
+            x = UnityEngine.Random.Range(0.0f, 360f),
+            y = UnityEngine.Random.Range(0.0f, 360f),
+            z = UnityEngine.Random.Range(0.0f, 360f),
+            w = UnityEngine.Random.Range(0.0f, 360f)
         };
         return GameObject.Instantiate(ObjList[obj_index], pos, qua);
     }
+    Color GenRadomColor()
+    {
+        Color col = Color.white;
+        col.r = UnityEngine.Random.Range(0f, 1f);
+        col.g = UnityEngine.Random.Range(0f, 1f);
+        col.b = UnityEngine.Random.Range(0f, 1f);
+        return col;
+    }
+    //材质不同，但是shader和mesh相同，per material属性可以不一样
+    GameObject GenRandomSingleObj(Material default_mat)
+    {
+        int obj_index = UnityEngine.Random.Range(0, ObjList.Count);
+        Vector3 pos = new Vector3()
+        {
+            x = UnityEngine.Random.Range(-Area.x,  Area.x),
+            y = UnityEngine.Random.Range(-Area.y, Area.y),
+            z = UnityEngine.Random.Range(-Area.z, Area.z)
+        };
+        Quaternion qua = new Quaternion()
+        {
+            x = UnityEngine.Random.Range(0.0f, 360f),
+            y = UnityEngine.Random.Range(0.0f, 360f),
+            z = UnityEngine.Random.Range(0.0f, 360f),
+            w = UnityEngine.Random.Range(0.0f, 360f)
+        };
+        GameObject obj = GameObject.Instantiate(ObjList[obj_index], pos, qua);
+        MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
+        renderer.sharedMaterial = new Material(default_mat);
+        renderer.sharedMaterial.SetColor("_Col", GenRadomColor());
+        return obj;
+    }
+
+    [ButtonGroup()]
+    [Button("克隆", ButtonSizes.Large)]
+    public void Clone()
+    {
+         if(!CheakValid())
+        {
+            Debug.LogError("wrong input ！");
+            return;
+        }
+        ClearOldObjs();
+        for(int i = 0; i < Count; ++i)
+        {
+            m_gen_objs.Add(CloneRandomSingleObj());
+        }
+    }
+
     [ButtonGroup()]
     [Button("生成", ButtonSizes.Large)]
     public void Gen()
@@ -60,10 +114,17 @@ public class InitSceneUtilEditorComponent
             Debug.LogError("wrong input ！");
             return;
         }
+        string mat_path = @"Assets/Materials/" + (m_use_lit ? "CusLitMat.mat" : "CusUnlitMat.mat");
+        Material default_mat = AssetDatabase.LoadAssetAtPath(mat_path, typeof(Material)) as Material;
+        if(null == default_mat)
+        {
+            Debug.LogError(" Wrong path at : " + mat_path);
+            return;
+        }
         ClearOldObjs();
         for(int i = 0; i < Count; ++i)
         {
-            m_gen_objs.Add(GenRadomSingleObj());
+            m_gen_objs.Add(GenRandomSingleObj(default_mat));
         }
     }
     [ButtonGroup()]
@@ -72,6 +133,8 @@ public class InitSceneUtilEditorComponent
     {
         ClearOldObjs();
     }
+
+    
     bool CheakValid()
     {
         if(ObjList.Count <= 0)
