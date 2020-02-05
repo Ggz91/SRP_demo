@@ -10,6 +10,7 @@ public class CusRP : RenderPipeline
     public struct CusRPParam
     {
         public Color ClearColor;
+        public bool DynamicBatcher;
         public bool SRPBatcher;
         public bool GPUInstancing;
     }
@@ -41,7 +42,7 @@ public class CusRP : RenderPipeline
         {
             drawing_setting.SetShaderPassName(i, shaders[i]);
         }
-        drawing_setting.enableDynamicBatching = !m_param.GPUInstancing;
+        drawing_setting.enableDynamicBatching = m_param.DynamicBatcher;
         drawing_setting.enableInstancing = m_param.GPUInstancing;
     }
     void DrawOpaque(ScriptableRenderContext context, SortingSettings sortingSettings, CullingResults cull_res)

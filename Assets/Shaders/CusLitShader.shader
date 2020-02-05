@@ -5,6 +5,9 @@ Shader "CusRP/CusLitShader"
     Properties
     {
         _Col ("Color", Color) = (1, 1, 0, 1)
+        _Tex("Texture", 2D) = "white" {}
+        [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", float) = 1
+        [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend", float) = 0
     }
     SubShader
     {
@@ -12,13 +15,13 @@ Shader "CusRP/CusLitShader"
         Tags{"LightMode"="CusRP"}
         Pass
         {
+            Blend [_SrcBlend] [_DstBlend]
             
             CGPROGRAM
             #include "UnityCG.cginc"
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_instancing
-
             
             UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
                 UNITY_DEFINE_INSTANCED_PROP(fixed4, _Col)

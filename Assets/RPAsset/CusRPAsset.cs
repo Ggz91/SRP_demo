@@ -9,9 +9,10 @@ public class CusRPAsset : RenderPipelineAsset
 {
     #region public var
     public Color ClearColor;
-    
+    public bool DynamicBatcher;
     public bool SRPBatcher;
     public bool GPUInstancing;
+    
     #endregion
     
     #region  private var
@@ -31,6 +32,7 @@ public class CusRPAsset : RenderPipelineAsset
     void FillRPParam(ref CusRP.CusRPParam param)
     {
         param.ClearColor = ClearColor;
+        param.DynamicBatcher = DynamicBatcher;
         param.SRPBatcher = SRPBatcher;
         param.GPUInstancing = GPUInstancing;
     }
