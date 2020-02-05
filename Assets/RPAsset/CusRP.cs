@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEditor;
+using Unity.Collections;
 
 public class CusRP : RenderPipeline
 {
@@ -17,7 +18,8 @@ public class CusRP : RenderPipeline
     CusRPParam m_param;
     Material m_error_mat;
     #endregion 
-    #region public method
+
+    #region 基本流程
     public void Setup(in CusRPParam param)
     {
         m_param = param;
@@ -121,6 +123,8 @@ public class CusRP : RenderPipeline
                 cmd.Clear();
 
                 CullingResults cull_res = context.Cull(ref cull_param);
+                 //设置light相关
+                SetupLights(cull_res.visibleLights);
                 SortingSettings sortingSettings = new SortingSettings(cam);
                 //具体绘制
                 //绘制不透明
@@ -150,11 +154,21 @@ public class CusRP : RenderPipeline
     #region inherit
     protected override void Render(ScriptableRenderContext context, Camera[] cameras)
     {
+       
         GraphicsSettings.useScriptableRenderPipelineBatching = m_param.SRPBatcher;
         foreach (Camera cam in cameras)
         {
             RenderSingleCamera(context, cam);
         }
+    }
+    #endregion
+
+    #region light
+    private LightUtil m_light_util = new LightUtil();
+    void SetupLights(Unity.Collections.NativeArray<VisibleLight> lights)
+    {
+        m_light_util.Setup(lights);
+
     }
     #endregion
 }

@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ClearColor: {r: 1, g: 1, b: 1, a: 0}
   DynamicBatcher: 0
-  SRPBatcher: 1
+  SRPBatcher: 0
   GPUInstancing: 0
