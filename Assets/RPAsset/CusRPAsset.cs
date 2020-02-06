@@ -14,6 +14,7 @@ public class CusRPAsset : RenderPipelineAsset
     public bool GPUInstancing;
     
     public bool CastShadows;
+    public int ShadowAtlasSize = 512;
     #endregion
     
     #region  private var
@@ -37,6 +38,7 @@ public class CusRPAsset : RenderPipelineAsset
         param.SRPBatcher = SRPBatcher;
         param.GPUInstancing = GPUInstancing;
         param.CastShadows = CastShadows;
+        param.ShadowAltasSize = ShadowAtlasSize;
     }
     #endregion
 

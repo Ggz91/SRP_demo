@@ -16,6 +16,7 @@ public class CusRP : RenderPipeline
         public bool GPUInstancing;
 
         public bool CastShadows;
+        public int ShadowAltasSize;
     }
     CusRPParam m_param;
     Material m_error_mat;
@@ -108,34 +109,41 @@ public class CusRP : RenderPipeline
             context.DrawGizmos(cam, GizmoSubset.PostImageEffects);
         }
     }
+
+    void SetPreRenderSetting(ScriptableRenderContext context, CommandBuffer cmd, Camera cam)
+    {
+        cmd.ClearRenderTarget(true, true, m_param.ClearColor);
+        context.ExecuteCommandBuffer(cmd);
+        cmd.Clear();
+
+        context.SetupCameraProperties(cam);
+    }
+    
     void RenderSingleCamera(ScriptableRenderContext context, Camera cam)
     {
         //cull
-        ScriptableCullingParameters cull_param = new ScriptableCullingParameters();
-        if (cam.TryGetCullingParameters(out cull_param))
+        CommandBuffer cmd = CommandBufferPool.Get("CusRP Render : " + cam.name);
+        using (new ProfilingSample(cmd, "Render loop"))
         {
-            context.SetupCameraProperties(cam);
-
-            CommandBuffer cmd = CommandBufferPool.Get(cam.name);
-            cmd.Clear();
-            using (new ProfilingSample(cmd, "Render Begin"))
+            ScriptableCullingParameters cull_param = new ScriptableCullingParameters();
+            CullingResults cull_res;
+            if(cam.TryGetCullingParameters(out cull_param))
             {
-                cmd.ClearRenderTarget(true, true, m_param.ClearColor);
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
-                CullingResults cull_res = context.Cull(ref cull_param);
-
-                 //设置light相关
+                cull_param.shadowDistance = 100;
+                cull_res = context.Cull(ref cull_param);
+            
+                //设置light相关
                 SetupLights(cull_res.visibleLights);
                 //设置阴影相关
                 SetupShadows(context, cmd, cull_res);
 
+                SetPreRenderSetting(context, cmd, cam);
                 //具体绘制
                 SortingSettings sortingSettings = new SortingSettings(cam);
                 //绘制不透明
                 DrawOpaque(context, sortingSettings, cull_res);
                 //绘制天空盒
+
                 context.DrawSkybox(cam);
                 //绘制透明
                 DrawTransparent(context, sortingSettings, cull_res);
@@ -145,22 +153,21 @@ public class CusRP : RenderPipeline
 
                 //绘制gizmos
                 DrawGizmos(context, cam);
+                context.Submit();
+                CommandBufferPool.Release(cmd);
             }
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-            context.Submit();
-
+            else
+            {
+                Debug.Log("Cull wrong");
+            }
         }
-        else
-        {
-            Debug.Log("fail to cull , cam : " + cam.name);
-        }
+       
     }
 
     #region inherit
     protected override void Render(ScriptableRenderContext context, Camera[] cameras)
     {
-       
+        
         GraphicsSettings.useScriptableRenderPipelineBatching = m_param.SRPBatcher;
         foreach (Camera cam in cameras)
         {
@@ -186,7 +193,9 @@ public class CusRP : RenderPipeline
         {
             return;
         }
-        m_shadow_util.Setup(context, cmd, cull_res);
+        ShadowSetting setting;
+        setting.Size = m_param.ShadowAltasSize;
+        m_shadow_util.Setup(in setting, context, cmd, cull_res);
     }
     #endregion
 }

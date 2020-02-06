@@ -22,17 +22,18 @@ public class ShadowUtil
     #endregion
     
     #region method
-    public void Setup(ScriptableRenderContext context, CommandBuffer cmd, in CullingResults cull_res)
+    public void Setup(in ShadowSetting setting, ScriptableRenderContext context, CommandBuffer cmd, in CullingResults cull_res)
     {
         m_context = context;
         m_cull_res = cull_res;
         m_cmd_buffer = cmd;
-
+        m_setting = setting;
         ExecuteImp();    
     }
 
     void InitShadowMapAltas()
     {
+        Clean();
         m_shadow_map_atlas_id = Shader.PropertyToID("_ShadowMapAltas");
     }
     void DrawShowsImp()
@@ -47,29 +48,28 @@ public class ShadowUtil
 			out ShadowSplitData splitData);
             settings.splitData = splitData;
             m_cmd_buffer.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
+            ExecuteBuffer();
             m_context.DrawShadows(ref settings);
         }
-       
     }
 
     void SetPreRenderDrawSetting()
     {
         //1、 分配渲染纹理
-        m_cmd_buffer.GetTemporaryRT(m_shadow_map_atlas_id, m_setting.Size, m_setting.Size);
-        
+        m_cmd_buffer.GetTemporaryRT(m_shadow_map_atlas_id, m_setting.Size, m_setting.Size, 16);
+
         //2、 设置渲染目标
-        m_cmd_buffer.SetRenderTarget(m_shadow_map_atlas_id);
+        m_cmd_buffer.SetRenderTarget(m_shadow_map_atlas_id, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
         m_cmd_buffer.ClearRenderTarget(true, true, Color.clear);
-        m_context.ExecuteCommandBuffer(m_cmd_buffer);
+        ExecuteBuffer();
     }
     void SetAfterRenderSetting()
     {
-
+        
     }
     void ExecuteImp()
     {
-        m_cmd_buffer.BeginSample(m_tag);
-         //1、初始化Shadow Map Altas ：大小、级联数量、灯光数量
+        //1、初始化Shadow Map Altas ：大小、级联数量、灯光数量
         InitShadowMapAltas();
 
         //2、设置渲染前的参数
@@ -80,13 +80,19 @@ public class ShadowUtil
 
         //4、 后处理
         SetAfterRenderSetting();
-        m_cmd_buffer.EndSample(m_tag);
     }
 
     void Clean()
     {
         //清除shadow Map Altas
         m_cmd_buffer.ReleaseTemporaryRT(m_shadow_map_atlas_id);
+        ExecuteBuffer();
+    }
+
+    void ExecuteBuffer()
+    {
+        m_context.ExecuteCommandBuffer(m_cmd_buffer);
+        m_cmd_buffer.Clear();
     }
     #endregion
 }
