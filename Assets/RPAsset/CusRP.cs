@@ -14,6 +14,8 @@ public class CusRP : RenderPipeline
         public bool DynamicBatcher;
         public bool SRPBatcher;
         public bool GPUInstancing;
+
+        public bool CastShadows;
     }
     CusRPParam m_param;
     Material m_error_mat;
@@ -123,10 +125,14 @@ public class CusRP : RenderPipeline
                 cmd.Clear();
 
                 CullingResults cull_res = context.Cull(ref cull_param);
+
                  //设置light相关
                 SetupLights(cull_res.visibleLights);
-                SortingSettings sortingSettings = new SortingSettings(cam);
+                //设置阴影相关
+                SetupShadows(context, cmd, cull_res);
+
                 //具体绘制
+                SortingSettings sortingSettings = new SortingSettings(cam);
                 //绘制不透明
                 DrawOpaque(context, sortingSettings, cull_res);
                 //绘制天空盒
@@ -169,6 +175,18 @@ public class CusRP : RenderPipeline
     {
         m_light_util.Setup(lights);
 
+    }
+    #endregion
+
+    #region shadow
+    private ShadowUtil m_shadow_util = new ShadowUtil();
+    void SetupShadows(ScriptableRenderContext context, CommandBuffer cmd, in CullingResults cull_res)
+    {
+        if(!m_param.CastShadows)
+        {
+            return;
+        }
+        m_shadow_util.Setup(context, cmd, cull_res);
     }
     #endregion
 }

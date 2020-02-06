@@ -13,6 +13,7 @@ public class CusRPAsset : RenderPipelineAsset
     public bool SRPBatcher;
     public bool GPUInstancing;
     
+    public bool CastShadows;
     #endregion
     
     #region  private var
@@ -35,6 +36,7 @@ public class CusRPAsset : RenderPipelineAsset
         param.DynamicBatcher = DynamicBatcher;
         param.SRPBatcher = SRPBatcher;
         param.GPUInstancing = GPUInstancing;
+        param.CastShadows = CastShadows;
     }
     #endregion
 

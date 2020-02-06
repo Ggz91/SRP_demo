@@ -31,6 +31,11 @@ public class LightUtil
         for(int i=0; i<lights.Length && i<m_max_light_count; ++i)
         {
             VisibleLight light = lights[i];
+            //暂时只针对平行光
+            if(LightType.Directional != light.lightType)
+            {
+                continue;
+            }
             m_list_colors[i] = light.finalColor;
             m_list_dirs[i] = light.light.transform.forward;
         }
