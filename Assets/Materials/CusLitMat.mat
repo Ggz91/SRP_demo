@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: CusLitMat
   m_Shader: {fileID: 4800000, guid: 6f3b31f16f470bc44976d8807c700e84, type: 3}
-  m_ShaderKeywords: _ALPHATODIFFUSE _CLIPPING
+  m_ShaderKeywords: _ALPHATODIFFUSE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -63,7 +63,7 @@ Material:
     - _AlphaToDiffuse: 1
     - _BumpScale: 1
     - _Clip: 0
-    - _Clipping: 1
+    - _Clipping: 0
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 10

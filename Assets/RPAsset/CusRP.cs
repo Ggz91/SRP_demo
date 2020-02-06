@@ -112,11 +112,11 @@ public class CusRP : RenderPipeline
 
     void SetPreRenderSetting(ScriptableRenderContext context, CommandBuffer cmd, Camera cam)
     {
+        context.SetupCameraProperties(cam);
+
         cmd.ClearRenderTarget(true, true, m_param.ClearColor);
         context.ExecuteCommandBuffer(cmd);
         cmd.Clear();
-
-        context.SetupCameraProperties(cam);
     }
     
     void RenderSingleCamera(ScriptableRenderContext context, Camera cam)
@@ -129,7 +129,7 @@ public class CusRP : RenderPipeline
             CullingResults cull_res;
             if(cam.TryGetCullingParameters(out cull_param))
             {
-                cull_param.shadowDistance = 100;
+                cull_param.shadowDistance = 10;
                 cull_res = context.Cull(ref cull_param);
             
                 //设置light相关

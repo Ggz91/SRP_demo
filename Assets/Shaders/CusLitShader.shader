@@ -97,7 +97,7 @@ Shader "CusRP/CusLitShader"
         Pass {
 			Tags { "LightMode" = "ShadowCaster"}
 
-			ColorMask 0
+			//ColorMask 0
 
 			CGPROGRAM
             #include "UnityCG.cginc"
@@ -142,7 +142,7 @@ Shader "CusRP/CusLitShader"
                 o.normal_ws = UnityObjectToWorldNormal(i.normal);
                 return o;
             }
-            void frag(v2f indata) 
+            void frag(v2f indata)
             {
                 float4 tex_col = tex2D(_Tex, indata.uv.xy);
                 #if defined(_CLIPPING)

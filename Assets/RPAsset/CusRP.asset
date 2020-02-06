@@ -17,4 +17,4 @@ MonoBehaviour:
   SRPBatcher: 0
   GPUInstancing: 0
   CastShadows: 1
-  ShadowAtlasSize: 512
+  ShadowAtlasSize: 1024
