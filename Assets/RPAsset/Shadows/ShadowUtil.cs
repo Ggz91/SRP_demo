@@ -13,13 +13,20 @@ public class ShadowUtil
 {
     #region var
     ShadowSetting m_setting;
-    int m_shadow_map_atlas_id;
     ScriptableRenderContext m_context;
     CommandBuffer m_cmd_buffer;
     CullingResults m_cull_res;
 
     const int m_max_lights_count = 4;
     string m_tag = "RenderShadows";
+    List<Matrix4x4> m_shadow_light_space_matrics = new List<Matrix4x4>();
+    //Shader 相关属性
+    //Altas 的buff id
+    int m_shadow_map_atlas_id;
+    //灯光数量
+    int m_shadow_light_count_id;
+    //从世界坐标系到灯光坐标系的变换矩阵
+    int m_shadow_light_space_matrics_id;
     #endregion
     
     #region method
@@ -31,21 +38,64 @@ public class ShadowUtil
         m_setting = setting;
         ExecuteImp();    
     }
-
+     List<Matrix4x4> GetShadowLightSpaceTransMatrics()
+    {
+        //灯光和frag都在world space
+        //要把frag转换到灯光的空间，类似从world space到view space的变换。在view space中，以camera 为原点，camera在世界空间的forward up right三个向量作为view space空间的坐标系基
+        //这里类似，从world space 到light space的变换。也可以类似的看做以light的世界坐标right up forward作为light space的坐标系的基
+        //因此，整个变换是基于坐标系基的变换
+        List<Matrix4x4> matrices = new List<Matrix4x4>();
+        foreach(var light in m_cull_res.visibleLights)
+        {
+        }
+        return matrices;
+    }
     void InitShadowMapAltas()
     {
         Clean();
+
+        //分配属性id
         m_shadow_map_atlas_id = Shader.PropertyToID("_ShadowMapAltas");
+        m_shadow_light_count_id = Shader.PropertyToID("_ShadowLightsCount");
+        m_shadow_light_space_matrics_id = Shader.PropertyToID("_ShadowLightSpaceTransformMatrics");
+
+        //给属性赋值
+        Shader.SetGlobalInt(m_shadow_light_count_id, m_cull_res.visibleLights.Length);
     }
-    Rect GetShadowMapRect(int light_index, int light_count)
+    Vector2 CalLightOffset(int light_index, int light_count)
     {
         //不同灯光的viewport按照从左到右的顺序排列，从下到上的顺序；
         //最多4个光源
         int tile_count = light_count <= 1 ? 1 : 2;
-        int tile_size = m_setting.Size / tile_count;
-        float x_offset = light_index % tile_count;
-        float y_offset = light_index / tile_count;
-        return new Rect(x_offset * tile_size, y_offset * tile_size , tile_size, tile_size);
+        Vector2 offset = new Vector2();
+        offset.x = light_index % tile_count;
+        offset.y = light_index / tile_count;
+        return offset;
+    }
+    Rect GetShadowMapRect(int light_index, int light_count)
+    {
+        int tile_size = m_setting.Size / light_count;
+        Vector2 offset = CalLightOffset(light_index, light_count);
+        return new Rect(offset.x * tile_size, offset.y * tile_size , tile_size, tile_size);
+    }
+    void AddLightSpaceTransMatrix(int i, int light_count,Matrix4x4 view_matrix, Matrix4x4 proj_matrix)
+    {
+        Vector2 offset = CalLightOffset(i, light_count);
+        Matrix4x4 m = view_matrix * proj_matrix;
+        float scale = 1f / light_count;
+		m.m00 = (0.5f * (m.m00 + m.m30) + offset.x * m.m30) * scale;
+		m.m01 = (0.5f * (m.m01 + m.m31) + offset.x * m.m31) * scale;
+		m.m02 = (0.5f * (m.m02 + m.m32) + offset.x * m.m32) * scale;
+		m.m03 = (0.5f * (m.m03 + m.m33) + offset.x * m.m33) * scale;
+		m.m10 = (0.5f * (m.m10 + m.m30) + offset.y * m.m30) * scale;
+		m.m11 = (0.5f * (m.m11 + m.m31) + offset.y * m.m31) * scale;
+		m.m12 = (0.5f * (m.m12 + m.m32) + offset.y * m.m32) * scale;
+		m.m13 = (0.5f * (m.m13 + m.m33) + offset.y * m.m33) * scale;
+        m.m20 = (0.5f * (m.m20 + m.m30));
+        m.m21 = (0.5f * (m.m20 + m.m31));
+        m.m22 = (0.5f * (m.m20 + m.m32));
+        m.m23 = (0.5f * (m.m20 + m.m33));
+        m_shadow_light_space_matrics.Add(m);
     }
     void DrawShowsImp()
     {
@@ -62,6 +112,9 @@ public class ShadowUtil
             m_cmd_buffer.SetViewport(GetShadowMapRect(i, m_cull_res.visibleLights.Length));
             ExecuteBuffer();
             m_context.DrawShadows(ref settings);
+
+            //变换矩阵存着给后续的采样做准备
+            AddLightSpaceTransMatrix(i, m_cull_res.visibleLights.Length,viewMatrix, projectionMatrix);
         }
     }
 
@@ -77,7 +130,8 @@ public class ShadowUtil
     }
     void SetAfterRenderSetting()
     {
-        
+        //设置后续的变换矩阵给采样做准备
+        Shader.SetGlobalMatrixArray(m_shadow_light_space_matrics_id, m_shadow_light_space_matrics);
     }
     void ExecuteImp()
     {
@@ -99,6 +153,8 @@ public class ShadowUtil
         //清除shadow Map Altas
         m_cmd_buffer.ReleaseTemporaryRT(m_shadow_map_atlas_id);
         ExecuteBuffer();
+
+        m_shadow_light_space_matrics.Clear();
     }
 
     void ExecuteBuffer()
