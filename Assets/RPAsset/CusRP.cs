@@ -17,6 +17,7 @@ public class CusRP : RenderPipeline
 
         public bool CastShadows;
         public int ShadowAltasSize;
+        public float ShadowMaxDistance;
     }
     CusRPParam m_param;
     Material m_error_mat;
@@ -129,7 +130,7 @@ public class CusRP : RenderPipeline
             CullingResults cull_res;
             if(cam.TryGetCullingParameters(out cull_param))
             {
-                cull_param.shadowDistance = 10;
+                cull_param.shadowDistance = Mathf.Min(m_param.ShadowMaxDistance, cam.farClipPlane);
                 cull_res = context.Cull(ref cull_param);
             
                 //设置light相关

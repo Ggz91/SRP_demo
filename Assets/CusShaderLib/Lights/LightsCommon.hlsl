@@ -1,6 +1,8 @@
 ﻿#ifndef LIGHTS_COMMON_HLSL
 #define LIGHTS_COMMON_HLSL
 
+#include "../CusShaderLib/Shadows/ShadowCommon.hlsl"
+
 #define MAX_LIGHTS_NUM 4
 #define MIN_REFLECTIVITY 0.04
 CBUFFER_START(Lights_Prop)
@@ -17,6 +19,7 @@ struct Surface
     float metallic;
     float3 view_dir;
     bool diffuse_use_alpha;
+    float3 pos_ws;
 };
 
 float4 CalDiffuse(float4 light_dir, Surface surface)
@@ -68,9 +71,13 @@ float4 GetSingleLightsColor(int index, Surface surface)
 float4 GetLightsColor(Surface surface)
 {
     float4 color = 0;
+    //加入阴影的影响
+    ShadowParam shadow;
+    shadow.pos_ws = float4(surface.pos_ws, 1);
     for(int i=0; i<_LightsCount; ++i)
     {
-        color += GetSingleLightsColor(i, surface);
+        
+        color += GetSingleLightsColor(i, surface) * GetSingleShadowAutten(i, shadow);
     }
     return color;
 }

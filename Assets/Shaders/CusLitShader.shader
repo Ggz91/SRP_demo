@@ -27,7 +27,6 @@ Shader "CusRP/CusLitShader"
             #include "../CusShaderLib/Common.hlsl"
 
             #include "../CusShaderLib/Lights/LightsCommon.hlsl"
-            #include "../CusShaderLib/Shadows/ShadowCommon.hlsl"
 
             #pragma vertex vert
             #pragma fragment frag
@@ -68,6 +67,7 @@ Shader "CusRP/CusLitShader"
                 o.uv = i.uv;
                 o.pos_ws = TransformObjectToWorld(i.pos.xyz);
                 o.pos = TransformWorldToHClip(o.pos_ws.xyz);
+               
                 //没有法线贴图在vs里面计算normal_ws
                 o.normal_ws = TransformObjectToWorldNormal(i.normal.xyz);
                 return o;
@@ -87,17 +87,14 @@ Shader "CusRP/CusLitShader"
                 #else
                     surface.diffuse_use_alpha = false;
                 #endif
+                surface.pos_ws = indata.pos_ws;
                 surface.color = color;
                 surface.normal_ws = normalize( indata.normal_ws);
                 surface.view_dir = normalize(_WorldSpaceCameraPos -indata.pos_ws);
                 surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
                 surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic);
                 color.xyz = GetLightsColor(surface).xyz;
-                //加入阴影的影响
-                ShadowParam shadow;
-                shadow.pos_ws.xyz = indata.pos_ws;
-                shadow.pos_ws.w = 1;
-                color.xyz *= GetShadowAutten(shadow);
+
                 return color;
             }
             ENDHLSL
@@ -149,6 +146,11 @@ Shader "CusRP/CusLitShader"
                 o.uv = i.uv;
                 o.pos_ws = TransformObjectToWorld(i.pos.xyz);
                 o.pos = TransformWorldToHClip(o.pos_ws.xyz);
+                 #if UNITY_REVERSED_Z
+                    o.pos.z = min(o.pos.z, o.pos.w * UNITY_NEAR_CLIP_VALUE);
+                #else
+                    o.pos.z = max(o.pos.z, o.pos.w * UNITY_NEAR_CLIP_VALUE);
+                #endif
                 //没有法线贴图在vs里面计算normal_ws
                 o.normal_ws = TransformObjectToWorldNormal(i.normal.xyz);
                 return o;

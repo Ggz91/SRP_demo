@@ -101,9 +101,9 @@ public class ShadowUtil
 		m.m12 = (0.5f * (m.m12 + m.m32) + offset.y * m.m32) * scale;
 		m.m13 = (0.5f * (m.m13 + m.m33) + offset.y * m.m33) * scale;
         m.m20 = (0.5f * (m.m20 + m.m30));
-        m.m21 = (0.5f * (m.m20 + m.m31));
-        m.m22 = (0.5f * (m.m20 + m.m32));
-        m.m23 = (0.5f * (m.m20 + m.m33));
+        m.m21 = (0.5f * (m.m21 + m.m31));
+        m.m22 = (0.5f * (m.m22 + m.m32));
+        m.m23 = (0.5f * (m.m23 + m.m33));
         m_shadow_light_space_matrics.Add(m);
     }
     void DrawShowsImp()
@@ -119,9 +119,11 @@ public class ShadowUtil
             settings.splitData = splitData;
             m_cmd_buffer.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
             m_cmd_buffer.SetViewport(GetShadowMapRect(i, m_cull_res.visibleLights.Length));
+            m_cmd_buffer.SetGlobalDepthBias(0f, 1f);
             ExecuteBuffer();
             m_context.DrawShadows(ref settings);
-
+            m_cmd_buffer.SetGlobalDepthBias(0f, 0f);
+            ExecuteBuffer();
             //变换矩阵存着给后续的采样做准备
             AddLightSpaceTransMatrix(i, m_cull_res.visibleLights.Length,viewMatrix, projectionMatrix);
         }
