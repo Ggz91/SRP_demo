@@ -8,7 +8,6 @@ SAMPLER_CMP(SHADOW_SAMPLER);
 
 
 CBUFFER_START(CusShadows)
-	int _ShadowLightsCount;
 	float4x4 _ShadowLightSpaceTransformMatrics[MAX_SHADOW_LIGHTS_COUNT];
 CBUFFER_END
 
@@ -25,7 +24,7 @@ float GetSingleShadowAutten(int i, ShadowParam param)
 		_ShadowMapAltas, SHADOW_SAMPLER, pos_ls);
 }
 
-float GetShadowAutten(ShadowParam param)
+/*float GetShadowAutten(ShadowParam param)
 {
 	float att = 1;
 	for(int i = 0; i < _ShadowLightsCount; ++i)
@@ -33,6 +32,6 @@ float GetShadowAutten(ShadowParam param)
 		att *= GetSingleShadowAutten(i, param);
 	}
 	return att;
-}
+}*/
 
 #endif

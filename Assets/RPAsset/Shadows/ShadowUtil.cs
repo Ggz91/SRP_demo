@@ -19,7 +19,7 @@ public class ShadowUtil
 
     const int m_max_lights_count = 4;
     string m_tag = "RenderShadows";
-    List<Matrix4x4> m_shadow_light_space_matrics = new List<Matrix4x4>();
+    Matrix4x4[] m_shadow_light_space_matrics = new Matrix4x4[m_max_lights_count];
     //Shader 相关属性
     //Altas 的buff id
     int m_shadow_map_atlas_id;
@@ -104,7 +104,7 @@ public class ShadowUtil
         m.m21 = (0.5f * (m.m21 + m.m31));
         m.m22 = (0.5f * (m.m22 + m.m32));
         m.m23 = (0.5f * (m.m23 + m.m33));
-        m_shadow_light_space_matrics.Add(m);
+        m_shadow_light_space_matrics[i] = m;
     }
     void DrawShowsImp()
     {
@@ -165,7 +165,6 @@ public class ShadowUtil
         m_cmd_buffer.ReleaseTemporaryRT(m_shadow_map_atlas_id);
         ExecuteBuffer();
 
-        m_shadow_light_space_matrics.Clear();
     }
 
     void ExecuteBuffer()
