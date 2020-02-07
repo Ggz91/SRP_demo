@@ -15,17 +15,10 @@ struct Surface
     float3 normal_ws;
     float smoothness;
     float metallic;
-    float view_dir;
+    float3 view_dir;
     bool diffuse_use_alpha;
 };
-float PerceptualSmoothnessToPerceptualRoughness(float perceptualSmoothness)
-{
-    return (1.0 - perceptualSmoothness);
-}
-float PerceptualRoughnessToRoughness(float perceptualRoughness)
-{
-    return perceptualRoughness * perceptualRoughness;
-}
+
 float4 CalDiffuse(float4 light_dir, Surface surface)
 {
     float range = 1 - MIN_REFLECTIVITY;
@@ -46,9 +39,9 @@ float CalSpecularStrength(Surface surface, float4 light_dir)
 {
     float roughness = PerceptualSmoothnessToPerceptualRoughness(surface.smoothness);
     roughness = PerceptualRoughnessToRoughness(roughness);
-    float3 h = normalize(light_dir + surface.view_dir);
+    float3 h = normalize(light_dir.xyz + surface.view_dir);
     float nh2 = Square(saturate(dot(surface.normal_ws, h)));
-    float lh2 = Square(saturate(dot(light_dir, h)));
+    float lh2 = Square(saturate(dot(light_dir.xyz, h)));
     float r2 = Square(roughness);
     float d2 = Square(nh2 * (r2 - 1.0) + 1.00001);
     float normalization = roughness * 4.0 + 2.0;
@@ -68,7 +61,7 @@ float4 GetSingleLightsColor(int index, Surface surface)
 {
     float4 dir = -_LightsDirections[index];
     float4 color = _LightsColors[index];
-    float4 light_color = saturate(dot(surface.normal_ws, dir))*color;
+    float4 light_color = saturate(dot(surface.normal_ws, dir.xyz))*color;
     return light_color * GetBRDF(dir, color, surface);
 }
 

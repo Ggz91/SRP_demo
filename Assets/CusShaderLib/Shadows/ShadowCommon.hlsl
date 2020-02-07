@@ -1,46 +1,38 @@
 ﻿#ifndef SHADOW_COMMON_HLSL
 #define SHADOW_COMMON_HLSL
+#define MAX_SHADOW_LIGHTS_COUNT 4
 
-sampler2D _BaseMap;
+TEXTURE2D_SHADOW(_ShadowMapAltas);
+#define SHADOW_SAMPLER sampler_linear_clamp_compare
+SAMPLER_CMP(SHADOW_SAMPLER);
 
-UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseMap_ST)
-	UNITY_DEFINE_INSTANCED_PROP(float4, _BaseColor)
-	UNITY_DEFINE_INSTANCED_PROP(float, _Cutoff)
-UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
 
-struct Attributes {
-	float3 positionOS : POSITION;
-	float2 baseUV : TEXCOORD0;
-	UNITY_VERTEX_INPUT_INSTANCE_ID
+CBUFFER_START(CusShadows)
+	int _ShadowLightsCount;
+	float4x4 _ShadowLightSpaceTransformMatrics[MAX_SHADOW_LIGHTS_COUNT];
+CBUFFER_END
+
+struct ShadowParam
+{
+	float4 pos_ws;
 };
 
-struct Varyings {
-	float4 positionCS : SV_POSITION;
-	float2 baseUV : VAR_BASE_UV;
-	UNITY_VERTEX_INPUT_INSTANCE_ID
-};
-
-Varyings ShadowCasterPassVertex (Attributes input) {
-	Varyings output;
-	UNITY_SETUP_INSTANCE_ID(input);
-	UNITY_TRANSFER_INSTANCE_ID(input, output);
-	float3 positionWS = UnityObjectToWorldDir(input.positionOS);
-	output.positionCS = UnityObjectToClipPos(positionWS);
-
-	float4 baseST = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseMap_ST);
-	output.baseUV = input.baseUV * baseST.xy + baseST.zw;
-	return output;
+float GetSingleShadowAutten(int i, ShadowParam param)
+{
+	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[i];
+	float4 pos_ls = mul(ls_matrix, param.pos_ws);
+	return SAMPLE_TEXTURE2D_SHADOW(
+		_ShadowMapAltas, SHADOW_SAMPLER, pos_ls);
 }
 
-void ShadowCasterPassFragment (Varyings input) {
-	UNITY_SETUP_INSTANCE_ID(input);
-	float4 baseMap = tex2D(_BaseMap, input.baseUV);
-	float4 baseColor = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _BaseColor);
-	float4 base = baseMap * baseColor;
-	#if defined(_CLIPPING)
-		clip(base.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Cutoff));
-	#endif
+float GetShadowAutten(ShadowParam param)
+{
+	float att = 1;
+	for(int i = 0; i < _ShadowLightsCount; ++i)
+	{
+		att *= GetSingleShadowAutten(i, param);
+	}
+	return att;
 }
 
 #endif

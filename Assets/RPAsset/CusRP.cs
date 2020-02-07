@@ -167,7 +167,7 @@ public class CusRP : RenderPipeline
     #region inherit
     protected override void Render(ScriptableRenderContext context, Camera[] cameras)
     {
-        
+        QualitySettings.shadows = ShadowQuality.All;
         GraphicsSettings.useScriptableRenderPipelineBatching = m_param.SRPBatcher;
         foreach (Camera cam in cameras)
         {

@@ -23,24 +23,27 @@ Shader "CusRP/CusLitShader"
         {
             Blend [_SrcBlend] [_DstBlend]
             ZWrite [_ZWrite]
-            CGPROGRAM
-            #include "UnityCG.cginc"
+            HLSLPROGRAM
+            #include "../CusShaderLib/Common.hlsl"
+
             #include "../CusShaderLib/Lights/LightsCommon.hlsl"
+            #include "../CusShaderLib/Shadows/ShadowCommon.hlsl"
 
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_instancing
             #pragma shader_feature _CLIPPING
             #pragma shader_feature _ALPHATODIFFUSE
+
             UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-                UNITY_DEFINE_INSTANCED_PROP(fixed4, _Col)
+                UNITY_DEFINE_INSTANCED_PROP(float4, _Col)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Clip)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Smoothness)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)
             UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
            
             sampler2D _Tex;
-            struct indata
+            struct a2v
             {
                 float4 pos : POSITION;
                 float4 uv : TEXCOORD;
@@ -56,17 +59,17 @@ Shader "CusRP/CusLitShader"
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
-            v2f vert(indata i)
+            v2f vert(a2v i)
             {
                 v2f o;
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_TRANSFER_INSTANCE_ID(i, o);
 
-                o.pos = UnityObjectToClipPos(i.pos);
                 o.uv = i.uv;
-                o.pos_ws = UnityObjectToWorldDir(i.pos);
+                o.pos_ws = TransformObjectToWorld(i.pos.xyz);
+                o.pos = TransformWorldToHClip(o.pos_ws.xyz);
                 //没有法线贴图在vs里面计算normal_ws
-                o.normal_ws = UnityObjectToWorldNormal(i.normal);
+                o.normal_ws = TransformObjectToWorldNormal(i.normal.xyz);
                 return o;
             }
             float4 frag(v2f indata) : SV_TARGET
@@ -86,27 +89,35 @@ Shader "CusRP/CusLitShader"
                 #endif
                 surface.color = color;
                 surface.normal_ws = normalize( indata.normal_ws);
-                surface.view_dir = normalize(_WorldSpaceCameraPos -indata.pos_ws) ;
+                surface.view_dir = normalize(_WorldSpaceCameraPos -indata.pos_ws);
                 surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
                 surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic);
                 color.xyz = GetLightsColor(surface).xyz;
+                //加入阴影的影响
+                ShadowParam shadow;
+                shadow.pos_ws.xyz = indata.pos_ws;
+                shadow.pos_ws.w = 1;
+                color.xyz *= GetShadowAutten(shadow);
                 return color;
             }
-            ENDCG
+            ENDHLSL
         }
         Pass {
 			Tags { "LightMode" = "ShadowCaster"}
 
 			//ColorMask 0
 
-			CGPROGRAM
-            #include "UnityCG.cginc"
+			HLSLPROGRAM
+            #include "../CusShaderLib/Common.hlsl"
+
+            #include "../CusShaderLib/Lights/LightsCommon.hlsl"
+            #include "../CusShaderLib/Shadows/ShadowCommon.hlsl"
             #pragma vertex vert
             #pragma fragment frag
 			#pragma shader_feature _CLIPPING
 			#pragma multi_compile_instancing
 			 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-                UNITY_DEFINE_INSTANCED_PROP(fixed4, _Col)
+                UNITY_DEFINE_INSTANCED_PROP(float4, _Col)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Clip)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Smoothness)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)
@@ -135,11 +146,11 @@ Shader "CusRP/CusLitShader"
                 UNITY_SETUP_INSTANCE_ID(i);
                 UNITY_TRANSFER_INSTANCE_ID(i, o);
 
-                o.pos = UnityObjectToClipPos(i.pos);
                 o.uv = i.uv;
-                o.pos_ws = UnityObjectToWorldDir(i.pos);
+                o.pos_ws = TransformObjectToWorld(i.pos.xyz);
+                o.pos = TransformWorldToHClip(o.pos_ws.xyz);
                 //没有法线贴图在vs里面计算normal_ws
-                o.normal_ws = UnityObjectToWorldNormal(i.normal);
+                o.normal_ws = TransformObjectToWorldNormal(i.normal.xyz);
                 return o;
             }
             void frag(v2f indata)
@@ -150,7 +161,7 @@ Shader "CusRP/CusLitShader"
                 #endif
             }
 
-			ENDCG
+			ENDHLSL
 		}
     }
 

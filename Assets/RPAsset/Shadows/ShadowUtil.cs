@@ -38,18 +38,7 @@ public class ShadowUtil
         m_setting = setting;
         ExecuteImp();    
     }
-     List<Matrix4x4> GetShadowLightSpaceTransMatrics()
-    {
-        //灯光和frag都在world space
-        //要把frag转换到灯光的空间，类似从world space到view space的变换。在view space中，以camera 为原点，camera在世界空间的forward up right三个向量作为view space空间的坐标系基
-        //这里类似，从world space 到light space的变换。也可以类似的看做以light的世界坐标right up forward作为light space的坐标系的基
-        //因此，整个变换是基于坐标系基的变换
-        List<Matrix4x4> matrices = new List<Matrix4x4>();
-        foreach(var light in m_cull_res.visibleLights)
-        {
-        }
-        return matrices;
-    }
+
     void InitShadowMapAltas()
     {
         Clean();
@@ -72,16 +61,36 @@ public class ShadowUtil
         offset.y = light_index / tile_count;
         return offset;
     }
+    int TileSize
+    {
+        get
+        {
+            int tile_count = m_cull_res.visibleLights.Length <= 1 ? 1 : 2;
+            return m_setting.Size / tile_count;
+        }
+    }
     Rect GetShadowMapRect(int light_index, int light_count)
     {
-        int tile_size = m_setting.Size / light_count;
         Vector2 offset = CalLightOffset(light_index, light_count);
-        return new Rect(offset.x * tile_size, offset.y * tile_size , tile_size, tile_size);
+        return new Rect(offset.x * TileSize, offset.y * TileSize , TileSize, TileSize);
     }
     void AddLightSpaceTransMatrix(int i, int light_count,Matrix4x4 view_matrix, Matrix4x4 proj_matrix)
     {
+         //灯光和frag都在world space
+        //要把frag转换到灯光的空间，类似从world space到view space的变换。在view space中，以camera 为原点，camera在世界空间的forward up right三个向量作为view space空间的坐标系基
+        //这里类似，从world space 到light space的变换。也可以类似的看做以light的世界坐标right up forward作为light space的坐标系的基
+        //因此，整个变换是基于坐标系基的变换
+        //此外，还需要把clip space[-1, 1]的坐标范围转换到[0,1]。然后算上当前的tile offset
         Vector2 offset = CalLightOffset(i, light_count);
-        Matrix4x4 m = view_matrix * proj_matrix;
+        Matrix4x4 m = proj_matrix * view_matrix;
+        //判断是否Z是reserve
+        if(SystemInfo.usesReversedZBuffer)
+        {
+            m.m20 = -m.m20;
+            m.m21 = -m.m21;
+            m.m22 = -m.m22;
+            m.m23 = -m.m23;
+        }
         float scale = 1f / light_count;
 		m.m00 = (0.5f * (m.m00 + m.m30) + offset.x * m.m30) * scale;
 		m.m01 = (0.5f * (m.m01 + m.m31) + offset.x * m.m31) * scale;
@@ -101,10 +110,10 @@ public class ShadowUtil
     {
         for(int i = 0; i<m_cull_res.visibleLights.Length; ++i)
         {
-             //设置shadow渲染参数
+            //设置shadow渲染参数
             ShadowDrawingSettings settings = new ShadowDrawingSettings(m_cull_res, i);
             m_cull_res.ComputeDirectionalShadowMatricesAndCullingPrimitives(
-			i, 0, 1, Vector3.zero, m_cull_res.visibleLights.Length, 0f,
+			i, 0, 1, Vector3.zero, TileSize, 0f,
 			out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix,
 			out ShadowSplitData splitData);
             settings.splitData = splitData;
@@ -125,7 +134,7 @@ public class ShadowUtil
 
         //2、 设置渲染目标
         m_cmd_buffer.SetRenderTarget(m_shadow_map_atlas_id, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-        m_cmd_buffer.ClearRenderTarget(true, true, Color.clear);
+        m_cmd_buffer.ClearRenderTarget(true, false, Color.clear);
         ExecuteBuffer();
     }
     void SetAfterRenderSetting()
