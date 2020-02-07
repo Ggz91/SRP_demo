@@ -18,6 +18,7 @@ public class ShadowUtil
     CommandBuffer m_cmd_buffer;
     CullingResults m_cull_res;
 
+    const int m_max_lights_count = 4;
     string m_tag = "RenderShadows";
     #endregion
     
@@ -36,6 +37,16 @@ public class ShadowUtil
         Clean();
         m_shadow_map_atlas_id = Shader.PropertyToID("_ShadowMapAltas");
     }
+    Rect GetShadowMapRect(int light_index, int light_count)
+    {
+        //不同灯光的viewport按照从左到右的顺序排列，从下到上的顺序；
+        //最多4个光源
+        int tile_count = light_count <= 1 ? 1 : 2;
+        int tile_size = m_setting.Size / tile_count;
+        float x_offset = light_index % tile_count;
+        float y_offset = light_index / tile_count;
+        return new Rect(x_offset * tile_size, y_offset * tile_size , tile_size, tile_size);
+    }
     void DrawShowsImp()
     {
         for(int i = 0; i<m_cull_res.visibleLights.Length; ++i)
@@ -48,6 +59,7 @@ public class ShadowUtil
 			out ShadowSplitData splitData);
             settings.splitData = splitData;
             m_cmd_buffer.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
+            m_cmd_buffer.SetViewport(GetShadowMapRect(i, m_cull_res.visibleLights.Length));
             ExecuteBuffer();
             m_context.DrawShadows(ref settings);
         }
