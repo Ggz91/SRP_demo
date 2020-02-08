@@ -74,9 +74,11 @@ float4 GetLightsColor(Surface surface)
     //加入阴影的影响
     ShadowParam shadow;
     shadow.pos_ws = float4(surface.pos_ws, 1);
+    shadow.is_mul_lights = _LightsCount > 0;
     for(int i=0; i<_LightsCount; ++i)
     {
-        color += GetSingleLightsColor(i, surface) * GetSingleShadowAutten(i, shadow);
+        shadow.light_index = i;
+        color += GetSingleLightsColor(i, surface) * GetSingleShadowAutten(shadow);
     }
     return color;
 }

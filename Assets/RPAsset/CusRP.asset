@@ -14,13 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ClearColor: {r: 1, g: 1, b: 1, a: 0}
   DynamicBatcher: 0
-  SRPBatcher: 0
+  SRPBatcher: 1
   GPUInstancing: 0
   CastShadows: 1
   ShadowAtlasSize: 4096
-  ShadowMaxDistance: 20
+  ShadowMaxDistance: 50
   ShadowDepthBias: 1
-  UsCaseCasde: 1
+  UsCaseCasde: 0
   CascadeRadio:
   - 0.25
   - 0.5

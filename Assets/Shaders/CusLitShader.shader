@@ -33,7 +33,8 @@ Shader "CusRP/CusLitShader"
             #pragma multi_compile_instancing
             #pragma shader_feature _CLIPPING
             #pragma shader_feature _ALPHATODIFFUSE
-
+            #pragma shader_feature _USE_CASCADE_SHADOW
+            
             UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
                 UNITY_DEFINE_INSTANCED_PROP(float4, _Col)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Clip)

@@ -49,7 +49,17 @@ public class ShadowUtil
         m_setting = setting;
         ExecuteImp();    
     }
-
+    void SetShaderKeyword(string key_word, bool enable)
+    {
+        if(enable)
+        {
+            Shader.EnableKeyword(key_word);
+        }
+        else
+        {
+            Shader.DisableKeyword(key_word);
+        }
+    }
     void InitShadowMapAltas()
     {
         Clean();
@@ -58,10 +68,13 @@ public class ShadowUtil
         m_shadow_map_atlas_id = Shader.PropertyToID("_ShadowMapAltas");
         m_shadow_light_count_id = Shader.PropertyToID("_ShadowLightsCount");
         m_shadow_light_space_matrics_id = Shader.PropertyToID("_ShadowLightSpaceTransformMatrics");
-        m_shadow_cascade_cull_sphere_id = Shader.PropertyToID("_SHadowCascadeCullSphereId");
+        m_shadow_cascade_cull_sphere_id = Shader.PropertyToID("_ShadowCascadeCullSphereInfo");
 
         //给属性赋值
         Shader.SetGlobalInt(m_shadow_light_count_id, m_cull_res.visibleLights.Length);
+
+        //根据是否开启了Cascade Shadow来开启关键字
+        SetShaderKeyword("_USE_CASCADE_SHADOW", m_setting.UseCascade);
     }
     Vector2Int CalLightOffset(int light_index, int cascade_index, int light_count)
     {
@@ -111,7 +124,12 @@ public class ShadowUtil
             m.m22 = -m.m22;
             m.m23 = -m.m23;
         }
+        
         float scale = 1f / light_count;
+        if(m_setting.UseCascade)
+        {
+            scale /= 2;
+        }
 		m.m00 = (0.5f * (m.m00 + m.m30) + offset.x * m.m30) * scale;
 		m.m01 = (0.5f * (m.m01 + m.m31) + offset.x * m.m31) * scale;
 		m.m02 = (0.5f * (m.m02 + m.m32) + offset.x * m.m32) * scale;
@@ -141,6 +159,8 @@ public class ShadowUtil
         size *= m_cull_res.visibleLights.Length > 1 ? 2 : 1;
         int index = offset.y * size + offset.x;
         m_cascade_cull_sphere_split_data[index] = split_data.cullingSphere;
+        //节省一次在shader中的sqrt计算
+        m_cascade_cull_sphere_split_data[index].w *= m_cascade_cull_sphere_split_data[index].w;
         //Debug.Log("record cull sphere index : " + index.ToString());
     }
     void AddLightShadowParam(int light_index, int light_count, int cascade_index,Matrix4x4 view_matrix, Matrix4x4 proj_matrix, ref ShadowSplitData split_data)
