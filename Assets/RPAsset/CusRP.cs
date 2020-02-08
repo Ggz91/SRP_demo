@@ -18,6 +18,8 @@ public class CusRP : RenderPipeline
         public bool CastShadows;
         public int ShadowAltasSize;
         public float ShadowMaxDistance;
+        public float ShadowDepthBias;
+
     }
     CusRPParam m_param;
     Material m_error_mat;
@@ -196,6 +198,7 @@ public class CusRP : RenderPipeline
         }
         ShadowSetting setting;
         setting.Size = m_param.ShadowAltasSize;
+        setting.DepthBias = m_param.ShadowDepthBias;
         m_shadow_util.Setup(in setting, context, cmd, cull_res);
     }
     #endregion

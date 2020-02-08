@@ -16,6 +16,7 @@ public class CusRPAsset : RenderPipelineAsset
     public bool CastShadows;
     public int ShadowAtlasSize = 512;
     public float ShadowMaxDistance = 1000;
+    public float ShadowDepthBias = 1f;
     #endregion
     
     #region  private var
@@ -41,6 +42,7 @@ public class CusRPAsset : RenderPipelineAsset
         param.CastShadows = CastShadows;
         param.ShadowAltasSize = ShadowAtlasSize;
         param.ShadowMaxDistance = ShadowMaxDistance;
+        param.ShadowDepthBias = ShadowDepthBias;
     }
     #endregion
 

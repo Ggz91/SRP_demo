@@ -7,6 +7,7 @@ using UnityEngine.Experimental.Rendering;
 public struct ShadowSetting
 {
     public int Size;
+    public float DepthBias;
 }
 
 public class ShadowUtil
@@ -119,7 +120,7 @@ public class ShadowUtil
             settings.splitData = splitData;
             m_cmd_buffer.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
             m_cmd_buffer.SetViewport(GetShadowMapRect(i, m_cull_res.visibleLights.Length));
-            m_cmd_buffer.SetGlobalDepthBias(0f, 1f);
+            m_cmd_buffer.SetGlobalDepthBias(0f, m_setting.DepthBias);
             ExecuteBuffer();
             m_context.DrawShadows(ref settings);
             m_cmd_buffer.SetGlobalDepthBias(0f, 0f);
