@@ -31,6 +31,13 @@ public class ShadowUtil
     int m_shadow_light_count_id;
     //从世界坐标系到灯光坐标系的变换矩阵
     int m_shadow_light_space_matrics_id;
+    //Cascade Cull Sphere
+    int m_shadow_cascade_cull_sphere_id;
+
+    //用来记录Cascade Cull Sphere的球心位置
+    Vector4[] m_cascade_cull_sphere_split_data = new Vector4[m_max_cascade_count * m_max_lights_count];
+
+    //用来记录
     #endregion
     
     #region method
@@ -51,16 +58,17 @@ public class ShadowUtil
         m_shadow_map_atlas_id = Shader.PropertyToID("_ShadowMapAltas");
         m_shadow_light_count_id = Shader.PropertyToID("_ShadowLightsCount");
         m_shadow_light_space_matrics_id = Shader.PropertyToID("_ShadowLightSpaceTransformMatrics");
+        m_shadow_cascade_cull_sphere_id = Shader.PropertyToID("_SHadowCascadeCullSphereId");
 
         //给属性赋值
         Shader.SetGlobalInt(m_shadow_light_count_id, m_cull_res.visibleLights.Length);
     }
-    Vector2 CalLightOffset(int light_index, int cascade_index, int light_count)
+    Vector2Int CalLightOffset(int light_index, int cascade_index, int light_count)
     {
         //不同灯光的viewport按照从左到右的顺序排列，从下到上的顺序；
         //最多4个光源
         int tile_count = light_count <= 1 ? 1 : 2;
-        Vector2 offset = new Vector2();
+        Vector2Int offset = new Vector2Int();
         offset.x = light_index % tile_count;
         offset.y = light_index / tile_count;
         if(m_setting.UseCascade)
@@ -87,14 +95,13 @@ public class ShadowUtil
         Vector2 offset = CalLightOffset(light_index, cascade_index, light_count);
         return new Rect(offset.x * tile_size, offset.y * tile_size , tile_size, tile_size);
     }
-    void AddLightSpaceTransMatrix(int i, int light_count, int cascade_count,Matrix4x4 view_matrix, Matrix4x4 proj_matrix)
+    void RecordLightShadowTransMatrix(int light_count, in Vector2Int offset,Matrix4x4 view_matrix, Matrix4x4 proj_matrix)
     {
          //灯光和frag都在world space
         //要把frag转换到灯光的空间，类似从world space到view space的变换。在view space中，以camera 为原点，camera在世界空间的forward up right三个向量作为view space空间的坐标系基
         //这里类似，从world space 到light space的变换。也可以类似的看做以light的世界坐标right up forward作为light space的坐标系的基
         //因此，整个变换是基于坐标系基的变换
         //此外，还需要把clip space[-1, 1]的坐标范围转换到[0,1]。然后算上当前的tile offset
-        Vector2 offset = CalLightOffset(i, cascade_count, light_count);
         Matrix4x4 m = proj_matrix * view_matrix;
         //判断是否Z是reserve
         if(SystemInfo.usesReversedZBuffer)
@@ -117,7 +124,34 @@ public class ShadowUtil
         m.m21 = (0.5f * (m.m21 + m.m31));
         m.m22 = (0.5f * (m.m22 + m.m32));
         m.m23 = (0.5f * (m.m23 + m.m33));
-        m_shadow_light_space_matrics[i] = m;
+        int size = m_setting.UseCascade ? 2 : 1;
+        size *= m_cull_res.visibleLights.Length > 1 ? 2 : 1;
+        int index = offset.y * size + offset.x;
+        m_shadow_light_space_matrics[index] = m;
+    }
+    void RecordLightShadowCascadeInfo(in Vector2Int offset, ref ShadowSplitData split_data)
+    {
+        if(!m_setting.UseCascade)
+        {
+            return;
+        }
+
+        //记录球心位置和半径
+        int size = m_setting.UseCascade ? 2 : 1;
+        size *= m_cull_res.visibleLights.Length > 1 ? 2 : 1;
+        int index = offset.y * size + offset.x;
+        m_cascade_cull_sphere_split_data[index] = split_data.cullingSphere;
+        //Debug.Log("record cull sphere index : " + index.ToString());
+    }
+    void AddLightShadowParam(int light_index, int light_count, int cascade_index,Matrix4x4 view_matrix, Matrix4x4 proj_matrix, ref ShadowSplitData split_data)
+    {
+        Vector2Int offset = CalLightOffset(light_index, cascade_index, light_count);
+
+        //记录矩阵
+        RecordLightShadowTransMatrix(light_count, offset, view_matrix, proj_matrix);
+
+        //记录Cascade相关
+        RecordLightShadowCascadeInfo(in offset, ref split_data);
     }
     void DrawShadowWithCascade()
     {
@@ -141,10 +175,10 @@ public class ShadowUtil
                 m_context.DrawShadows(ref settings);
                 m_cmd_buffer.SetGlobalDepthBias(0f, 0f);
                 ExecuteBuffer();
+
+                //变换矩阵存着给后续的采样做准备
+                AddLightShadowParam(i, m_cull_res.visibleLights.Length, j,viewMatrix, projectionMatrix, ref splitData);
             }
-           
-            //变换矩阵存着给后续的采样做准备
-            //AddLightSpaceTransMatrixWithoutCascade(i, m_cull_res.visibleLights.Length,viewMatrix, projectionMatrix);
         }
     }
     void DrawShadowWithoutCascade()
@@ -166,7 +200,7 @@ public class ShadowUtil
             m_cmd_buffer.SetGlobalDepthBias(0f, 0f);
             ExecuteBuffer();
             //变换矩阵存着给后续的采样做准备
-            AddLightSpaceTransMatrix(i, 0, m_cull_res.visibleLights.Length,viewMatrix, projectionMatrix);
+            AddLightShadowParam(i, m_cull_res.visibleLights.Length, 0,viewMatrix, projectionMatrix, ref splitData);
         }
     }
     void DrawShowsImp()
@@ -195,6 +229,12 @@ public class ShadowUtil
     {
         //设置后续的变换矩阵给采样做准备
         Shader.SetGlobalMatrixArray(m_shadow_light_space_matrics_id, m_shadow_light_space_matrics);
+
+        //设置Cascade Cull Sphere相关信息
+        if(m_setting.UseCascade)
+        {
+            Shader.SetGlobalVectorArray(m_shadow_cascade_cull_sphere_id, m_cascade_cull_sphere_split_data);
+        }
     }
     void ExecuteImp()
     {
