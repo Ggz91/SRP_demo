@@ -19,3 +19,9 @@ MonoBehaviour:
   CastShadows: 1
   ShadowAtlasSize: 4096
   ShadowMaxDistance: 20
+  ShadowDepthBias: 1
+  UsCaseCasde: 1
+  CascadeRadio:
+  - 0.25
+  - 0.5
+  - 0.75

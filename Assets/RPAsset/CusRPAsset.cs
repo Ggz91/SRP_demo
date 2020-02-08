@@ -15,8 +15,13 @@ public class CusRPAsset : RenderPipelineAsset
     
     public bool CastShadows;
     public int ShadowAtlasSize = 512;
-    public float ShadowMaxDistance = 1000;
+    public float ShadowMaxDistance = 20;
     public float ShadowDepthBias = 1f;
+
+    public bool UsCaseCasde = false;
+    const int CascadeCount = 4;
+
+    public float[] CascadeRadio = {0.2f, 0.3f, 0.4f};
     #endregion
     
     #region  private var
@@ -35,6 +40,7 @@ public class CusRPAsset : RenderPipelineAsset
     
     void FillRPParam(ref CusRP.CusRPParam param)
     {
+        CheckParam();
         param.ClearColor = ClearColor;
         param.DynamicBatcher = DynamicBatcher;
         param.SRPBatcher = SRPBatcher;
@@ -43,6 +49,18 @@ public class CusRPAsset : RenderPipelineAsset
         param.ShadowAltasSize = ShadowAtlasSize;
         param.ShadowMaxDistance = ShadowMaxDistance;
         param.ShadowDepthBias = ShadowDepthBias;
+        param.CascadeRadio = CascadeRadio;
+        param.UseCascade = UsCaseCasde;
+        param.CascadeRadio = CascadeRadio;
+    }
+    void CheckParam()
+    {
+        string res = "";
+        //待检查的参数值        
+        if("" != res)
+        {
+            Debug.LogError(res + " is wrong input ");
+        }
     }
     #endregion
 
@@ -58,6 +76,7 @@ public class CusRPAsset : RenderPipelineAsset
         (rp as CusRP).Setup(param);
         return rp;
     }
+    
     protected override void OnValidate()
     {
         if(null == rp || rp.disposed)
