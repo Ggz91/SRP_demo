@@ -23,6 +23,9 @@ public class CusRPAsset : RenderPipelineAsset
     const int CascadeCount = 4;
 
     public float[] CascadeRadio = {0.2f, 0.3f, 0.4f};
+    [Min(0.0001f)]
+    public float ShadowFadeFactor = 0.1f;
+    public float CascadeFadeFactor = 0.1f;
     #endregion
     
     #region  private var
@@ -52,7 +55,8 @@ public class CusRPAsset : RenderPipelineAsset
         param.ShadowDepthBias = ShadowDepthBias;
         param.CascadeRadio = CascadeRadio;
         param.UseCascade = UsCaseCasde;
-        param.CascadeRadio = CascadeRadio;
+        param.ShadowFadeFactor = ShadowFadeFactor;
+        param.CascadeFadeFactor = CascadeFadeFactor;
     }
     void CheckParam()
     {

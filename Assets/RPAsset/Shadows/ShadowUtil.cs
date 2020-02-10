@@ -11,6 +11,8 @@ public struct ShadowSetting
     public bool UseCascade;
     public float[] CascadeRadio;
     public float MaxDistance;
+    public float ShadowFadeFactor;
+    public float CascadeFadeFactor;
 }
 
 public class ShadowUtil
@@ -38,6 +40,8 @@ public class ShadowUtil
     Vector4[] m_cascade_cull_sphere_split_data = new Vector4[m_max_cascade_count * m_max_lights_count];
     //shadow max distance
     int m_shadow_max_distance_id;
+    //shadow fade 
+    int m_shadow_fade_id;
     #endregion
     
     #region method
@@ -70,10 +74,12 @@ public class ShadowUtil
         m_shadow_light_space_matrics_id = Shader.PropertyToID("_ShadowLightSpaceTransformMatrics");
         m_shadow_cascade_cull_sphere_id = Shader.PropertyToID("_ShadowCascadeCullSphereInfo");
         m_shadow_max_distance_id = Shader.PropertyToID("_ShadowMaxDistance");
-
+        m_shadow_fade_id = Shader.PropertyToID("_ShadowFadeParam");
         //给属性赋值
         Shader.SetGlobalInt(m_shadow_light_count_id, m_cull_res.visibleLights.Length);
         Shader.SetGlobalFloat(m_shadow_max_distance_id, m_setting.MaxDistance);
+        float f = 1 - m_setting.ShadowFadeFactor;
+        Shader.SetGlobalVector(m_shadow_fade_id, new Vector4(1/m_setting.MaxDistance, 1/m_setting.ShadowFadeFactor, 1 / (1 - f * f), 0));
         //根据是否开启了Cascade Shadow来开启关键字
         SetShaderKeyword("_USE_CASCADE_SHADOW", m_setting.UseCascade);
     }
@@ -277,7 +283,6 @@ public class ShadowUtil
         //清除shadow Map Altas
         m_cmd_buffer.ReleaseTemporaryRT(m_shadow_map_atlas_id);
         ExecuteBuffer();
-
     }
 
     void ExecuteBuffer()

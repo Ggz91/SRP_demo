@@ -14,24 +14,38 @@ CBUFFER_START(CusShadows)
 	float4x4 _ShadowLightSpaceTransformMatrics[MAX_SHADOW_LIGHTS_COUNT * MAX_CASCADE_COUNT];
 	float4 _ShadowCascadeCullSphereInfo[MAX_SHADOW_LIGHTS_COUNT * MAX_CASCADE_COUNT];
 	float _ShadowMaxDistance;
+	float4 _ShadowFadeParam;
 CBUFFER_END
 
 struct ShadowParam
 {
 	float4 pos_ws;
-	float4 cascade_index;
+	int cascade_index;
 	uint light_index;
 	bool is_mul_lights;
 	float strength;
 	float depth;
 };
-
+float GetShadowStrength(ShadowParam param)
+{
+	float strength = 1;
+	//判断是否在剔除距离内
+	strength *= step(param.depth, _ShadowMaxDistance);
+	float fade = (1 - param.depth * _ShadowFadeParam.x) * _ShadowFadeParam.y;
+	//最后边缘的阴影表现
+	if((MAX_CASCADE_COUNT - 1) == param.cascade_index)
+	{
+		fade *= (1 - param.depth * param.depth * _ShadowFadeParam.x * _ShadowFadeParam.x) * _ShadowFadeParam.z;
+	}
+	return strength;
+}
 float GetSingleShadowAuttenWithoutCascade(ShadowParam param)
 {
 	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.light_index];
 	float4 pos_ls = mul(ls_matrix, param.pos_ws);
+	int strength = GetShadowStrength(param);
 	return SAMPLE_TEXTURE2D_SHADOW(
-		_ShadowMapAltas, SHADOW_SAMPLER, pos_ls);
+		_ShadowMapAltas, SHADOW_SAMPLER, pos_ls) * strength;
 }
 
 float SquareDistance(float3 orig, float3 dst)
@@ -66,29 +80,23 @@ int GetCascadeIndex(ShadowParam param)
 	}
 	return index;
 }
-float GetShadowStrength(ShadowParam param)
-{
-	float strength = 1;
-	//判断是否在剔除距离内
-	strength *= step(param.depth, _ShadowMaxDistance);
-	return strength;
-}
+
 float GetSingleShadowAuttenWithCascade(ShadowParam param)
 {
-	int index = GetCascadeIndex(param);
-	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[index];
+	param.cascade_index = GetCascadeIndex(param);
+	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.cascade_index];
 	float4 pos_ls = mul(ls_matrix, param.pos_ws);
+	int strength = GetShadowStrength(param);
 	return SAMPLE_TEXTURE2D_SHADOW(
-		_ShadowMapAltas, SHADOW_SAMPLER, pos_ls);
+		_ShadowMapAltas, SHADOW_SAMPLER, pos_ls) * strength;
 }
 
 float GetSingleShadowAutten(ShadowParam param)
 {
-	int strength = GetShadowStrength(param);
 	#if defined(_USE_CASCADE_SHADOW)
-		return	GetSingleShadowAuttenWithCascade(param) * strength;
+		return	GetSingleShadowAuttenWithCascade(param);
 	#else
-		return GetSingleShadowAuttenWithoutCascade(param) * strength;
+		return GetSingleShadowAuttenWithoutCascade(param);
 	#endif
 }
 
