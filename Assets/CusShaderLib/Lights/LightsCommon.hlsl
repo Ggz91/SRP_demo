@@ -74,7 +74,7 @@ float4 GetLightsColor(Surface surface)
     //加入阴影的影响
     ShadowParam shadow;
     //加入normal bias
-    shadow.is_mul_lights = _LightsCount > 0;
+    shadow.is_mul_lights = _LightsCount > 1;
 	shadow.depth = -TransformWorldToView(surface.pos_ws.xyz).z;
     shadow.pos_ws = surface.pos_ws;
     shadow.normal_ws = surface.normal_ws;

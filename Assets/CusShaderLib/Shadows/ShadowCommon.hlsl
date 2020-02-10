@@ -48,7 +48,10 @@ float GetShadowStrength(ShadowParam param)
 {
 	float strength = _ShadowStrength[param.light_index];
 	//判断是否在剔除距离内
-	strength *= step(param.depth, _ShadowMaxDistance);
+	if(param.depth > _ShadowMaxDistance)
+	{
+		return 1.0;
+	}
 	float fade = (1 - param.depth * _ShadowFadeParam.x) * _ShadowFadeParam.y;
 	//最后边缘的阴影表现
 	if((MAX_CASCADE_COUNT - 1) == param.cascade_index)
@@ -77,13 +80,14 @@ int GetCascadeIndex(ShadowParam param)
 	uint cascade_tile_size = 2;
 	uint tile_count = param.is_mul_lights ? 2 : 1;
 	int size = param.is_mul_lights ? 2 : 1;
+	
 	size *= cascade_tile_size;
-	float2 offset = float2(param.light_index % tile_count, param.light_index / tile_count);
-	offset *= cascade_tile_size;
 	int i =0;
 	int index = 0;
 	for(; i<MAX_CASCADE_COUNT; ++i)
 	{
+		float2 offset = float2(param.light_index % tile_count, param.light_index / tile_count);
+		offset *= cascade_tile_size;
 		offset.x += i % cascade_tile_size;
 		offset.y += i / cascade_tile_size;
 		index = offset.y * size + offset.x;
@@ -95,6 +99,7 @@ int GetCascadeIndex(ShadowParam param)
 			break;
 		}
 	}
+	
 	return index;
 }
 
