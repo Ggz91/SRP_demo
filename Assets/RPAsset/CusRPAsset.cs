@@ -26,6 +26,8 @@ public class CusRPAsset : RenderPipelineAsset
     [Min(0.0001f)]
     public float ShadowFadeFactor = 0.1f;
     public float CascadeFadeFactor = 0.1f;
+    [Range(0, 1)]
+    public float NormalBias = 0.01f;
     #endregion
     
     #region  private var
@@ -57,6 +59,7 @@ public class CusRPAsset : RenderPipelineAsset
         param.UseCascade = UsCaseCasde;
         param.ShadowFadeFactor = ShadowFadeFactor;
         param.CascadeFadeFactor = CascadeFadeFactor;
+        param.NormalBias = NormalBias;
     }
     void CheckParam()
     {

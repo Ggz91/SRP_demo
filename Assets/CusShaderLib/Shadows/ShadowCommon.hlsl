@@ -15,6 +15,7 @@ CBUFFER_START(CusShadows)
 	float4 _ShadowCascadeCullSphereInfo[MAX_SHADOW_LIGHTS_COUNT * MAX_CASCADE_COUNT];
 	float _ShadowMaxDistance;
 	float4 _ShadowFadeParam;
+	float _ShadowNormalBias[MAX_SHADOW_LIGHTS_COUNT];
 CBUFFER_END
 
 struct ShadowParam

@@ -7,7 +7,6 @@ using UnityEngine.Experimental.Rendering;
 public struct ShadowSetting
 {
     public int Size;
-    public float DepthBias;
     public bool UseCascade;
     public float[] CascadeRadio;
     public float MaxDistance;
@@ -42,6 +41,7 @@ public class ShadowUtil
     int m_shadow_max_distance_id;
     //shadow fade 
     int m_shadow_fade_id;
+    int m_shadow_normal_bias_id;
     #endregion
     
     #region method
@@ -75,6 +75,7 @@ public class ShadowUtil
         m_shadow_cascade_cull_sphere_id = Shader.PropertyToID("_ShadowCascadeCullSphereInfo");
         m_shadow_max_distance_id = Shader.PropertyToID("_ShadowMaxDistance");
         m_shadow_fade_id = Shader.PropertyToID("_ShadowFadeParam");
+        m_shadow_normal_bias_id = Shader.PropertyToID("_ShadowNormalBias");
         //给属性赋值
         Shader.SetGlobalInt(m_shadow_light_count_id, m_cull_res.visibleLights.Length);
         Shader.SetGlobalFloat(m_shadow_max_distance_id, m_setting.MaxDistance);
@@ -197,7 +198,7 @@ public class ShadowUtil
                 settings.splitData = splitData;
                 m_cmd_buffer.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
                 m_cmd_buffer.SetViewport(GetShadowMapRect(i, j, m_cull_res.visibleLights.Length, cascade_tile_size));
-                m_cmd_buffer.SetGlobalDepthBias(0f, m_setting.DepthBias);
+                m_cmd_buffer.SetGlobalDepthBias(0f, m_cull_res.visibleLights[i].light.shadowBias);
                 ExecuteBuffer();
                 m_context.DrawShadows(ref settings);
                 m_cmd_buffer.SetGlobalDepthBias(0f, 0f);
@@ -221,7 +222,7 @@ public class ShadowUtil
             settings.splitData = splitData;
             m_cmd_buffer.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
             m_cmd_buffer.SetViewport(GetShadowMapRect(i, 0, m_cull_res.visibleLights.Length, TileSize));
-            m_cmd_buffer.SetGlobalDepthBias(0f, m_setting.DepthBias);
+            m_cmd_buffer.SetGlobalDepthBias(0f, m_cull_res.visibleLights[i].light.shadowBias);
             ExecuteBuffer();
             m_context.DrawShadows(ref settings);
             m_cmd_buffer.SetGlobalDepthBias(0f, 0f);

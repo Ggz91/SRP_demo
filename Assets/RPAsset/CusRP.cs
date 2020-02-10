@@ -22,7 +22,7 @@ public class CusRP : RenderPipeline
         public float CascadeFadeFactor;
 
         public float ShadowDepthBias;
-
+        public float NormalBias;
         public bool UseCascade;
         public float[] CascadeRadio;
 
@@ -204,7 +204,6 @@ public class CusRP : RenderPipeline
         }
         ShadowSetting setting;
         setting.Size = m_param.ShadowAltasSize;
-        setting.DepthBias = m_param.ShadowDepthBias;
         setting.CascadeRadio = m_param.CascadeRadio;
         setting.UseCascade = m_param.UseCascade;
         setting.MaxDistance = m_param.ShadowMaxDistance;
