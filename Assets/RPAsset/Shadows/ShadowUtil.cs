@@ -193,12 +193,15 @@ public class ShadowUtil
         size *= m_cull_res.visibleLights.Length > 1 ? 2 : 1;
         int index = offset.y * size + offset.x;
         
+        float texel_size = 4f * split_data.cullingSphere.w / TileSize;
+        float filter_size = texel_size * ((float) m_setting.FilterMode);
         //记录Cascade 相关
         m_shadow_cascade_data[index].x = 1 / split_data.cullingSphere.w;
-        m_shadow_cascade_data[index].y = Mathf.Sqrt(2) * 4 * split_data.cullingSphere.w / TileSize;
+        m_shadow_cascade_data[index].y = Mathf.Sqrt(2) * filter_size;
         //记录球心位置和半径
         m_cascade_cull_sphere_split_data[index] = split_data.cullingSphere;
         //节省一次在shader中的sqrt计算
+        m_cascade_cull_sphere_split_data[index].w -= filter_size;
         m_cascade_cull_sphere_split_data[index].w *= m_cascade_cull_sphere_split_data[index].w;
         //Debug.Log("record cull sphere index : " + index.ToString());
        
