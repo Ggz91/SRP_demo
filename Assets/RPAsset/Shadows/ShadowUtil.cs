@@ -191,7 +191,7 @@ public class ShadowUtil
             {
                 ShadowDrawingSettings settings = new ShadowDrawingSettings(m_cull_res, i);
                 m_cull_res.ComputeDirectionalShadowMatricesAndCullingPrimitives(
-                i, j, cascade_count, cascade_radio, cascade_tile_size, 0f,
+                i, j, cascade_count, cascade_radio, cascade_tile_size, m_cull_res.visibleLights[i].light.shadowNearPlane,
                 out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix,
                 out ShadowSplitData splitData);
                 settings.splitData = splitData;
@@ -215,7 +215,7 @@ public class ShadowUtil
             //设置shadow渲染参数
             ShadowDrawingSettings settings = new ShadowDrawingSettings(m_cull_res, i);
             m_cull_res.ComputeDirectionalShadowMatricesAndCullingPrimitives(
-			i, 0, 1, Vector3.zero, TileSize, 0f,
+			i, 0, 1, Vector3.zero, TileSize, m_cull_res.visibleLights[i].light.shadowNearPlane,
 			out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix,
 			out ShadowSplitData splitData);
             settings.splitData = splitData;
