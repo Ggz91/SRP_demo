@@ -46,6 +46,8 @@ public class ShadowUtil
     float[] m_shadow_normal_bias =  new float[m_max_lights_count];
     int m_shadow_strength_id;
     float[] m_shadow_strength = new float[m_max_lights_count];
+    int m_shadow_cascade_id;
+    Vector4[] m_shadow_cascade_data = new Vector4[m_max_lights_count * m_max_lights_count];
     #endregion
     
     #region method
@@ -81,6 +83,7 @@ public class ShadowUtil
         m_shadow_fade_id = Shader.PropertyToID("_ShadowFadeParam");
         m_shadow_normal_bias_id = Shader.PropertyToID("_ShadowNormalBias");
         m_shadow_strength_id = Shader.PropertyToID("_ShadowStrength");
+        m_shadow_cascade_id = Shader.PropertyToID("_ShaderCascadeData");
         //给属性赋值
         Shader.SetGlobalInt(m_shadow_light_count_id, m_cull_res.visibleLights.Length);
         Shader.SetGlobalFloat(m_shadow_max_distance_id, m_setting.MaxDistance);
@@ -166,15 +169,20 @@ public class ShadowUtil
         {
             return;
         }
-
-        //记录球心位置和半径
+        
         int size = m_setting.UseCascade ? 2 : 1;
         size *= m_cull_res.visibleLights.Length > 1 ? 2 : 1;
         int index = offset.y * size + offset.x;
+        
+        //记录Cascade 相关
+        m_shadow_cascade_data[index].x = 1 / split_data.cullingSphere.w;
+        m_shadow_cascade_data[index].y = Mathf.Sqrt(2) * 4 * split_data.cullingSphere.w / TileSize;
+        //记录球心位置和半径
         m_cascade_cull_sphere_split_data[index] = split_data.cullingSphere;
         //节省一次在shader中的sqrt计算
         m_cascade_cull_sphere_split_data[index].w *= m_cascade_cull_sphere_split_data[index].w;
         //Debug.Log("record cull sphere index : " + index.ToString());
+       
     }
     void AddLightShadowParam(int light_index, int light_count, int cascade_index,Matrix4x4 view_matrix, Matrix4x4 proj_matrix, ref ShadowSplitData split_data)
     {
@@ -269,6 +277,7 @@ public class ShadowUtil
         Shader.SetGlobalMatrixArray(m_shadow_light_space_matrics_id, m_shadow_light_space_matrics);
         Shader.SetGlobalFloatArray(m_shadow_normal_bias_id, m_shadow_normal_bias);
         Shader.SetGlobalFloatArray(m_shadow_strength_id, m_shadow_strength);
+        Shader.SetGlobalVectorArray(m_shadow_cascade_id, m_shadow_cascade_data);
         //设置Cascade Cull Sphere相关信息
         if(m_setting.UseCascade)
         {

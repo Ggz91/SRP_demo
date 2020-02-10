@@ -17,6 +17,7 @@ CBUFFER_START(CusShadows)
 	float4 _ShadowFadeParam;
 	float _ShadowNormalBias[MAX_SHADOW_LIGHTS_COUNT];
 	float _ShadowStrength[MAX_SHADOW_LIGHTS_COUNT];
+	float4 _ShaderCascadeData[MAX_SHADOW_LIGHTS_COUNT * MAX_CASCADE_COUNT];
 CBUFFER_END
 
 struct ShadowParam
@@ -28,6 +29,7 @@ struct ShadowParam
 	float strength;
 	float depth;
 	float3 normal_ws;
+	int index;
 };
 float GetShadowStrength(ShadowParam param)
 {
@@ -38,14 +40,14 @@ float GetShadowStrength(ShadowParam param)
 	//最后边缘的阴影表现
 	if((MAX_CASCADE_COUNT - 1) == param.cascade_index)
 	{
-		fade *= (1 - param.depth * param.depth * _ShadowFadeParam.x * _ShadowFadeParam.x) * _ShadowFadeParam.z;
+		fade *= (1 - param.depth * param.depth * _ShaderCascadeData[param.index].x * _ShaderCascadeData[param.index].x) * _ShadowFadeParam.z;
 	}
 	return strength;
 }
 float GetSingleShadowAuttenWithoutCascade(ShadowParam param)
 {
 	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.light_index];
-	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
+	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index] * _ShaderCascadeData[param.index].y, 1));
 	float strength = GetShadowStrength(param);
 	return lerp(1.0f, SAMPLE_TEXTURE2D_SHADOW(_ShadowMapAltas, SHADOW_SAMPLER, pos_ls), strength);
 }
@@ -85,8 +87,12 @@ int GetCascadeIndex(ShadowParam param)
 
 float GetSingleShadowAuttenWithCascade(ShadowParam param)
 {
-	int index = GetCascadeIndex(param);
-	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[index];
+	if(_ShadowStrength[param.light_index] <= 0)
+	{
+		return 1.0f;
+	}
+	param.index = GetCascadeIndex(param);
+	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.index];
 	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
 	float strength = GetShadowStrength(param);
 	return lerp(1.0f, SAMPLE_TEXTURE2D_SHADOW(_ShadowMapAltas, SHADOW_SAMPLER, pos_ls), strength);

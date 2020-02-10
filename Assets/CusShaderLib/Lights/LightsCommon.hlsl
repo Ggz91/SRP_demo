@@ -78,6 +78,7 @@ float4 GetLightsColor(Surface surface)
 	shadow.depth = -TransformWorldToView(surface.pos_ws.xyz).z;
     shadow.pos_ws = surface.pos_ws;
     shadow.normal_ws = surface.normal_ws;
+    shadow.index = 0;
     for(int i=0; i<_LightsCount; ++i)
     {
         shadow.light_index = i;
