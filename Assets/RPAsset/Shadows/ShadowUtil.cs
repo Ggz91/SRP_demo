@@ -10,6 +10,7 @@ public struct ShadowSetting
     public float DepthBias;
     public bool UseCascade;
     public float[] CascadeRadio;
+    public float MaxDistance;
 }
 
 public class ShadowUtil
@@ -33,11 +34,10 @@ public class ShadowUtil
     int m_shadow_light_space_matrics_id;
     //Cascade Cull Sphere
     int m_shadow_cascade_cull_sphere_id;
-
     //用来记录Cascade Cull Sphere的球心位置
     Vector4[] m_cascade_cull_sphere_split_data = new Vector4[m_max_cascade_count * m_max_lights_count];
-
-    //用来记录
+    //shadow max distance
+    int m_shadow_max_distance_id;
     #endregion
     
     #region method
@@ -69,10 +69,11 @@ public class ShadowUtil
         m_shadow_light_count_id = Shader.PropertyToID("_ShadowLightsCount");
         m_shadow_light_space_matrics_id = Shader.PropertyToID("_ShadowLightSpaceTransformMatrics");
         m_shadow_cascade_cull_sphere_id = Shader.PropertyToID("_ShadowCascadeCullSphereInfo");
+        m_shadow_max_distance_id = Shader.PropertyToID("_ShadowMaxDistance");
 
         //给属性赋值
         Shader.SetGlobalInt(m_shadow_light_count_id, m_cull_res.visibleLights.Length);
-
+        Shader.SetGlobalFloat(m_shadow_max_distance_id, m_setting.MaxDistance);
         //根据是否开启了Cascade Shadow来开启关键字
         SetShaderKeyword("_USE_CASCADE_SHADOW", m_setting.UseCascade);
     }

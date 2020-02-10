@@ -204,6 +204,7 @@ public class CusRP : RenderPipeline
         setting.DepthBias = m_param.ShadowDepthBias;
         setting.CascadeRadio = m_param.CascadeRadio;
         setting.UseCascade = m_param.UseCascade;
+        setting.MaxDistance = m_param.ShadowMaxDistance;
         m_shadow_util.Setup(in setting, context, cmd, cull_res);
     }
     #endregion

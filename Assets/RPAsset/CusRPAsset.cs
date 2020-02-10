@@ -15,6 +15,7 @@ public class CusRPAsset : RenderPipelineAsset
     
     public bool CastShadows;
     public int ShadowAtlasSize = 512;
+    [Min(0.001f)]
     public float ShadowMaxDistance = 20;
     public float ShadowDepthBias = 1f;
 

@@ -13,6 +13,7 @@ SAMPLER_CMP(SHADOW_SAMPLER);
 CBUFFER_START(CusShadows)
 	float4x4 _ShadowLightSpaceTransformMatrics[MAX_SHADOW_LIGHTS_COUNT * MAX_CASCADE_COUNT];
 	float4 _ShadowCascadeCullSphereInfo[MAX_SHADOW_LIGHTS_COUNT * MAX_CASCADE_COUNT];
+	float _ShadowMaxDistance;
 CBUFFER_END
 
 struct ShadowParam
@@ -21,6 +22,8 @@ struct ShadowParam
 	float4 cascade_index;
 	uint light_index;
 	bool is_mul_lights;
+	float strength;
+	float depth;
 };
 
 float GetSingleShadowAuttenWithoutCascade(ShadowParam param)
@@ -33,10 +36,8 @@ float GetSingleShadowAuttenWithoutCascade(ShadowParam param)
 
 float SquareDistance(float3 orig, float3 dst)
 {
-	float x_dis = orig.x - dst.x;
-	float y_dis = orig.y - dst.y;
-	float z_dis = orig.z - dst.z;
-	return x_dis * x_dis + y_dis * y_dis + z_dis * z_dis;
+	float3 dst_vector = orig - dst;
+	return dot(dst_vector, dst_vector);
 }
 
 int GetCascadeIndex(ShadowParam param)
@@ -65,7 +66,13 @@ int GetCascadeIndex(ShadowParam param)
 	}
 	return index;
 }
-
+float GetShadowStrength(ShadowParam param)
+{
+	float strength = 1;
+	//判断是否在剔除距离内
+	strength *= step(param.depth, _ShadowMaxDistance);
+	return strength;
+}
 float GetSingleShadowAuttenWithCascade(ShadowParam param)
 {
 	int index = GetCascadeIndex(param);
@@ -77,10 +84,11 @@ float GetSingleShadowAuttenWithCascade(ShadowParam param)
 
 float GetSingleShadowAutten(ShadowParam param)
 {
+	int strength = GetShadowStrength(param);
 	#if defined(_USE_CASCADE_SHADOW)
-		return	GetSingleShadowAuttenWithCascade(param);
+		return	GetSingleShadowAuttenWithCascade(param) * strength;
 	#else
-		return GetSingleShadowAuttenWithoutCascade(param);
+		return GetSingleShadowAuttenWithoutCascade(param) * strength;
 	#endif
 }
 
