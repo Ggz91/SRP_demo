@@ -25,6 +25,7 @@ public class CusRP : RenderPipeline
         public float NormalBias;
         public bool UseCascade;
         public float[] CascadeRadio;
+        public CusRPAsset.FilterMode FilterMode;
 
     }
     CusRPParam m_param;
@@ -209,6 +210,7 @@ public class CusRP : RenderPipeline
         setting.MaxDistance = m_param.ShadowMaxDistance;
         setting.ShadowFadeFactor = m_param.ShadowFadeFactor;
         setting.CascadeFadeFactor = m_param.ShadowFadeFactor;
+        setting.FilterMode = m_param.FilterMode;
         m_shadow_util.Setup(in setting, context, cmd, cull_res);
     }
     #endregion

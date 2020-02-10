@@ -255,7 +255,7 @@ Light:
     m_CustomResolution: -1
     m_Strength: 1
     m_Bias: 0
-    m_NormalBias: 0.05
+    m_NormalBias: 0.12
     m_NearPlane: 0.38
     m_CullingMatrixOverride:
       e00: 1
@@ -323,7 +323,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!108 &943569349
 Light:
   m_ObjectHideFlags: 0

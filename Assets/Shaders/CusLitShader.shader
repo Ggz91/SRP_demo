@@ -34,6 +34,7 @@ Shader "CusRP/CusLitShader"
             #pragma shader_feature _CLIPPING
             #pragma shader_feature _ALPHATODIFFUSE
             #pragma shader_feature _USE_CASCADE_SHADOW
+            #pragma multi_compile _ _PCF3x3 _PCF5x5 _PCF7x7
             
             UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
                 UNITY_DEFINE_INSTANCED_PROP(float4, _Col)
@@ -108,8 +109,6 @@ Shader "CusRP/CusLitShader"
 			HLSLPROGRAM
             #include "../CusShaderLib/Common.hlsl"
 
-            #include "../CusShaderLib/Lights/LightsCommon.hlsl"
-            #include "../CusShaderLib/Shadows/ShadowCommon.hlsl"
             #pragma vertex vert
             #pragma fragment frag
 			#pragma shader_feature _CLIPPING

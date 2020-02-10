@@ -12,6 +12,7 @@ public struct ShadowSetting
     public float MaxDistance;
     public float ShadowFadeFactor;
     public float CascadeFadeFactor;
+    public CusRPAsset.FilterMode FilterMode;
 }
 
 public class ShadowUtil
@@ -48,6 +49,7 @@ public class ShadowUtil
     float[] m_shadow_strength = new float[m_max_lights_count];
     int m_shadow_cascade_id;
     Vector4[] m_shadow_cascade_data = new Vector4[m_max_lights_count * m_max_lights_count];
+    int m_shadow_altas_size_id;
     #endregion
     
     #region method
@@ -70,6 +72,20 @@ public class ShadowUtil
             Shader.DisableKeyword(key_word);
         }
     }
+    void EnableFilterMode()
+    {
+        string[] FilterModeKeywords = 
+        {
+            "_",
+            "_PCF3x3",
+            "_PCF5x5",
+            "_PCF7x7",
+        };
+        for(int i=0; i<=(int)CusRPAsset.FilterMode.PCF7x7; ++i)
+        {
+            SetShaderKeyword(FilterModeKeywords[i], i == (int)m_setting.FilterMode);
+        }
+    }
     void InitShadowMapAltas()
     {
         Clean();
@@ -83,14 +99,17 @@ public class ShadowUtil
         m_shadow_fade_id = Shader.PropertyToID("_ShadowFadeParam");
         m_shadow_normal_bias_id = Shader.PropertyToID("_ShadowNormalBias");
         m_shadow_strength_id = Shader.PropertyToID("_ShadowStrength");
-        m_shadow_cascade_id = Shader.PropertyToID("_ShaderCascadeData");
+        m_shadow_cascade_id = Shader.PropertyToID("_ShadowCascadeData");
+        m_shadow_altas_size_id = Shader.PropertyToID("_ShadowAltasSize");
         //给属性赋值
         Shader.SetGlobalInt(m_shadow_light_count_id, m_cull_res.visibleLights.Length);
         Shader.SetGlobalFloat(m_shadow_max_distance_id, m_setting.MaxDistance);
         float f = 1 - m_setting.CascadeFadeFactor;
-        Shader.SetGlobalVector(m_shadow_fade_id, new Vector4(1/m_setting.MaxDistance, 1/m_setting.ShadowFadeFactor, 1 / (1 - f * f), 0));
+        Shader.SetGlobalVector(m_shadow_fade_id, new Vector4(1.0f/m_setting.MaxDistance, 1.0f/m_setting.ShadowFadeFactor, 1.0f / (1.0f - f * f), 0));
+        Shader.SetGlobalVector(m_shadow_altas_size_id, new Vector4(m_setting.Size, 1.0f/m_setting.Size));
         //根据是否开启了Cascade Shadow来开启关键字
         SetShaderKeyword("_USE_CASCADE_SHADOW", m_setting.UseCascade);
+        EnableFilterMode();
     }
     Vector2Int CalLightOffset(int light_index, int cascade_index, int light_count)
     {

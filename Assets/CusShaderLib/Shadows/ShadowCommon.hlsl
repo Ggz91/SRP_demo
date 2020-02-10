@@ -4,6 +4,18 @@
 #define MAX_SHADOW_LIGHTS_COUNT 4
 #define MAX_CASCADE_COUNT 4 
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
+
+#if defined(_PCF3x3)
+	#define PCF_SAMPLER_COUNT 4
+	#define PCF_SAMPLER_SETUP SampleShadow_ComputeSamples_Tent_3x3
+#elif defined(_PCF5x5)
+	#define PCF_SAMPLER_COUNT 9
+	#define PCF_SAMPLER_SETUP SampleShadow_ComputeSamples_Tent_5x5
+#elif defined(_PCF7x7)
+	#define PCF_SAMPLER_COUNT 16
+	#define PCF_SAMPLER_SETUP SampleShadow_ComputeSamples_Tent_7x7
+#endif
 
 TEXTURE2D_SHADOW(_ShadowMapAltas);
 #define SHADOW_SAMPLER sampler_linear_clamp_compare
@@ -17,7 +29,8 @@ CBUFFER_START(CusShadows)
 	float4 _ShadowFadeParam;
 	float _ShadowNormalBias[MAX_SHADOW_LIGHTS_COUNT];
 	float _ShadowStrength[MAX_SHADOW_LIGHTS_COUNT];
-	float4 _ShaderCascadeData[MAX_SHADOW_LIGHTS_COUNT * MAX_CASCADE_COUNT];
+	float4 _ShadowCascadeData[MAX_SHADOW_LIGHTS_COUNT * MAX_CASCADE_COUNT];
+	float4 _ShadowAltasSize;
 CBUFFER_END
 
 struct ShadowParam
@@ -40,14 +53,14 @@ float GetShadowStrength(ShadowParam param)
 	//最后边缘的阴影表现
 	if((MAX_CASCADE_COUNT - 1) == param.cascade_index)
 	{
-		fade *= (1 - param.depth * param.depth * _ShaderCascadeData[param.index].x * _ShaderCascadeData[param.index].x) * _ShadowFadeParam.z;
+		fade *= (1 - param.depth * param.depth * _ShadowCascadeData[param.index].x * _ShadowCascadeData[param.index].x) * _ShadowFadeParam.z;
 	}
 	return strength;
 }
 float GetSingleShadowAuttenWithoutCascade(ShadowParam param)
 {
 	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.light_index];
-	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index] * _ShaderCascadeData[param.index].y, 1));
+	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index] * _ShadowCascadeData[param.index].y, 1));
 	float strength = GetShadowStrength(param);
 	return lerp(1.0f, SAMPLE_TEXTURE2D_SHADOW(_ShadowMapAltas, SHADOW_SAMPLER, pos_ls), strength);
 }
@@ -95,7 +108,21 @@ float GetSingleShadowAuttenWithCascade(ShadowParam param)
 	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.index];
 	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
 	float strength = GetShadowStrength(param);
-	return lerp(1.0f, SAMPLE_TEXTURE2D_SHADOW(_ShadowMapAltas, SHADOW_SAMPLER, pos_ls), strength);
+	float shadow = 0;
+	#if defined(PCF_SAMPLER_SETUP)
+		float weights[PCF_SAMPLER_COUNT];
+		float2 poses[PCF_SAMPLER_COUNT];
+		float4 size = _ShadowAltasSize.yyxx;
+		PCF_SAMPLER_SETUP(size, pos_ls.xy, weights, poses);
+		for(int i = 0; i < PCF_SAMPLER_COUNT; ++i)
+		{
+			shadow += weights[i] * SAMPLE_TEXTURE2D_SHADOW(_ShadowMapAltas, SHADOW_SAMPLER, float3(poses[i].xy, pos_ls.z));
+		}
+	#else
+		shadow = SAMPLE_TEXTURE2D_SHADOW(_ShadowMapAltas, SHADOW_SAMPLER, pos_ls);
+	#endif
+	
+	return lerp(1.0f, shadow, strength);
 }
 
 float GetSingleShadowAutten(ShadowParam param)
