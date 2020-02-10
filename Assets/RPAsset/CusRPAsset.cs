@@ -17,7 +17,6 @@ public class CusRPAsset : RenderPipelineAsset
     public int ShadowAtlasSize = 512;
     [Min(0.001f)]
     public float ShadowMaxDistance = 20;
-    public float ShadowDepthBias = 1f;
 
     public bool UsCaseCasde = false;
     const int CascadeCount = 4;
@@ -25,9 +24,8 @@ public class CusRPAsset : RenderPipelineAsset
     public float[] CascadeRadio = {0.2f, 0.3f, 0.4f};
     [Min(0.0001f)]
     public float ShadowFadeFactor = 0.1f;
+    [Min(0.0001f)]
     public float CascadeFadeFactor = 0.1f;
-    [Range(0, 1)]
-    public float NormalBias = 0.01f;
     #endregion
     
     #region  private var
@@ -54,12 +52,10 @@ public class CusRPAsset : RenderPipelineAsset
         param.CastShadows = CastShadows;
         param.ShadowAltasSize = ShadowAtlasSize;
         param.ShadowMaxDistance = ShadowMaxDistance;
-        param.ShadowDepthBias = ShadowDepthBias;
         param.CascadeRadio = CascadeRadio;
         param.UseCascade = UsCaseCasde;
         param.ShadowFadeFactor = ShadowFadeFactor;
         param.CascadeFadeFactor = CascadeFadeFactor;
-        param.NormalBias = NormalBias;
     }
     void CheckParam()
     {

@@ -42,6 +42,10 @@ public class ShadowUtil
     //shadow fade 
     int m_shadow_fade_id;
     int m_shadow_normal_bias_id;
+
+    float[] m_shadow_normal_bias =  new float[m_max_lights_count];
+    int m_shadow_strength_id;
+    float[] m_shadow_strength = new float[m_max_lights_count];
     #endregion
     
     #region method
@@ -76,10 +80,11 @@ public class ShadowUtil
         m_shadow_max_distance_id = Shader.PropertyToID("_ShadowMaxDistance");
         m_shadow_fade_id = Shader.PropertyToID("_ShadowFadeParam");
         m_shadow_normal_bias_id = Shader.PropertyToID("_ShadowNormalBias");
+        m_shadow_strength_id = Shader.PropertyToID("_ShadowStrength");
         //给属性赋值
         Shader.SetGlobalInt(m_shadow_light_count_id, m_cull_res.visibleLights.Length);
         Shader.SetGlobalFloat(m_shadow_max_distance_id, m_setting.MaxDistance);
-        float f = 1 - m_setting.ShadowFadeFactor;
+        float f = 1 - m_setting.CascadeFadeFactor;
         Shader.SetGlobalVector(m_shadow_fade_id, new Vector4(1/m_setting.MaxDistance, 1/m_setting.ShadowFadeFactor, 1 / (1 - f * f), 0));
         //根据是否开启了Cascade Shadow来开启关键字
         SetShaderKeyword("_USE_CASCADE_SHADOW", m_setting.UseCascade);
@@ -180,6 +185,11 @@ public class ShadowUtil
 
         //记录Cascade相关
         RecordLightShadowCascadeInfo(in offset, ref split_data);
+
+        //记录normalbias
+        m_shadow_normal_bias[light_index] = m_cull_res.visibleLights[light_index].light.shadowNormalBias;
+        //记录strength
+        m_shadow_strength[light_index] = m_cull_res.visibleLights[light_index].light.shadowStrength;
     }
     void DrawShadowWithCascade()
     {
@@ -257,7 +267,8 @@ public class ShadowUtil
     {
         //设置后续的变换矩阵给采样做准备
         Shader.SetGlobalMatrixArray(m_shadow_light_space_matrics_id, m_shadow_light_space_matrics);
-
+        Shader.SetGlobalFloatArray(m_shadow_normal_bias_id, m_shadow_normal_bias);
+        Shader.SetGlobalFloatArray(m_shadow_strength_id, m_shadow_strength);
         //设置Cascade Cull Sphere相关信息
         if(m_setting.UseCascade)
         {

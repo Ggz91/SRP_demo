@@ -16,20 +16,22 @@ CBUFFER_START(CusShadows)
 	float _ShadowMaxDistance;
 	float4 _ShadowFadeParam;
 	float _ShadowNormalBias[MAX_SHADOW_LIGHTS_COUNT];
+	float _ShadowStrength[MAX_SHADOW_LIGHTS_COUNT];
 CBUFFER_END
 
 struct ShadowParam
 {
-	float4 pos_ws;
+	float3 pos_ws;
 	int cascade_index;
 	uint light_index;
 	bool is_mul_lights;
 	float strength;
 	float depth;
+	float3 normal_ws;
 };
 float GetShadowStrength(ShadowParam param)
 {
-	float strength = 1;
+	float strength = _ShadowStrength[param.light_index];
 	//判断是否在剔除距离内
 	strength *= step(param.depth, _ShadowMaxDistance);
 	float fade = (1 - param.depth * _ShadowFadeParam.x) * _ShadowFadeParam.y;
@@ -43,10 +45,9 @@ float GetShadowStrength(ShadowParam param)
 float GetSingleShadowAuttenWithoutCascade(ShadowParam param)
 {
 	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.light_index];
-	float4 pos_ls = mul(ls_matrix, param.pos_ws);
-	int strength = GetShadowStrength(param);
-	return SAMPLE_TEXTURE2D_SHADOW(
-		_ShadowMapAltas, SHADOW_SAMPLER, pos_ls) * strength;
+	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
+	float strength = GetShadowStrength(param);
+	return lerp(1.0f, SAMPLE_TEXTURE2D_SHADOW(_ShadowMapAltas, SHADOW_SAMPLER, pos_ls), strength);
 }
 
 float SquareDistance(float3 orig, float3 dst)
@@ -84,12 +85,11 @@ int GetCascadeIndex(ShadowParam param)
 
 float GetSingleShadowAuttenWithCascade(ShadowParam param)
 {
-	param.cascade_index = GetCascadeIndex(param);
-	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.cascade_index];
-	float4 pos_ls = mul(ls_matrix, param.pos_ws);
-	int strength = GetShadowStrength(param);
-	return SAMPLE_TEXTURE2D_SHADOW(
-		_ShadowMapAltas, SHADOW_SAMPLER, pos_ls) * strength;
+	int index = GetCascadeIndex(param);
+	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[index];
+	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
+	float strength = GetShadowStrength(param);
+	return lerp(1.0f, SAMPLE_TEXTURE2D_SHADOW(_ShadowMapAltas, SHADOW_SAMPLER, pos_ls), strength);
 }
 
 float GetSingleShadowAutten(ShadowParam param)
