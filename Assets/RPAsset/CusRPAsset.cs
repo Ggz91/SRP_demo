@@ -36,6 +36,12 @@ public class CusRPAsset : RenderPipelineAsset
     public FilterMode ShadowFilterMode = FilterMode.NONE;
     [Range(0f, 1f)]
     public float CascadeBlendFactor = 0.7f;
+    public enum CascadeBlendMode
+    {
+        NONE = 0,
+        Dither,
+    }
+    public CascadeBlendMode ShadowCascadeBlendMode = CascadeBlendMode.NONE;
     #endregion
     
     #region  private var
@@ -68,6 +74,7 @@ public class CusRPAsset : RenderPipelineAsset
         param.CascadeFadeFactor = CascadeFadeFactor;
         param.FilterMode = ShadowFilterMode;
         param.CascadeBlendFactor = CascadeBlendFactor;
+        param.CascadeBlendMode = ShadowCascadeBlendMode;
     }
     void CheckParam()
     {

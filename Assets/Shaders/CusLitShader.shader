@@ -35,7 +35,7 @@ Shader "CusRP/CusLitShader"
             #pragma shader_feature _ALPHATODIFFUSE
             #pragma shader_feature _USE_CASCADE_SHADOW
             #pragma multi_compile _ _PCF3x3 _PCF5x5 _PCF7x7
-            
+            #pragma shader_feature _CASCADE_DITHER
             UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
                 UNITY_DEFINE_INSTANCED_PROP(float4, _Col)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Clip)
@@ -95,6 +95,7 @@ Shader "CusRP/CusLitShader"
                 surface.view_dir = normalize(_WorldSpaceCameraPos -indata.pos_ws);
                 surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
                 surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic);
+                surface.pos = indata.pos.xyz;
                 color.xyz = GetLightsColor(surface).xyz;
 
                 return color;
@@ -113,6 +114,7 @@ Shader "CusRP/CusLitShader"
             #pragma fragment frag
 			#pragma shader_feature _CLIPPING
 			#pragma multi_compile_instancing
+            
 			 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
                 UNITY_DEFINE_INSTANCED_PROP(float4, _Col)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Clip)

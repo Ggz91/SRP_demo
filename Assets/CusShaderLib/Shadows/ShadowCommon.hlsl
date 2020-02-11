@@ -44,6 +44,9 @@ struct ShadowParam
 	float depth;
 	float3 normal_ws;
 	int index;
+	#if defined(_CASCADE_DITHER)
+		float dither;
+	#endif
 };
 float GetShadowStrength(ShadowParam param)
 {
@@ -92,6 +95,12 @@ float2 GetCascadeIndex(ShadowParam param)
 	for(; i<MAX_CASCADE_COUNT; ++i)
 	{
 		param.cascade_index = i;
+		#if defined(_CASCADE_DITHER)
+			if((MAX_CASCADE_COUNT-1) != i && _ShadowCascadeBlend < param.dither)
+			{
+				param.cascade_index++;
+			}
+		#endif
 		index = GetRealIndex(param);
 		float4 split_data = _ShadowCascadeCullSphereInfo[index];
 		float distance_to_sphere_center = SquareDistance(param.pos_ws.xyz, split_data.xyz);
@@ -139,16 +148,19 @@ float GetSingleShadowAuttenWithCascade(ShadowParam param)
 	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
 	float strength = GetShadowStrength(param);
 	float shadow = GetSingleCacasdeAutten(pos_ls);
-	if(_ShadowCascadeBlend<0.999f && param.cascade_index != (MAX_CASCADE_COUNT-1))
-	{
-		//跟后一个Cascade混合
-		param.cascade_index = param.cascade_index + 1;
-		int after_index = GetRealIndex(param);
-		float4x4 after_ls_matrix = _ShadowLightSpaceTransformMatrics[after_index];
-		float4 after_pos_ls = mul(after_ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
-		float after_shadow = GetSingleCacasdeAutten(after_pos_ls);
-		shadow = lerp(after_shadow, shadow, _ShadowCascadeBlend);
-	}
+	#if !defined(_CASCADE_DITHER)
+		if(_ShadowCascadeBlend<0.999f && param.cascade_index != (MAX_CASCADE_COUNT-1))
+		{
+			//跟后一个Cascade混合
+			param.cascade_index = param.cascade_index + 1;
+			int after_index = GetRealIndex(param);
+			float4x4 after_ls_matrix = _ShadowLightSpaceTransformMatrics[after_index];
+			float4 after_pos_ls = mul(after_ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
+			float after_shadow = GetSingleCacasdeAutten(after_pos_ls);
+			shadow = lerp(after_shadow, shadow, _ShadowCascadeBlend);
+		}
+	#endif
+	
 	return lerp(1.0f, shadow, strength);
 }
 

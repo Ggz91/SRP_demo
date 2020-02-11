@@ -26,5 +26,6 @@ MonoBehaviour:
   - 0.75
   ShadowFadeFactor: 0.1
   CascadeFadeFactor: 0.1
-  ShadowFilterMode: 2
-  CascadeBlendFactor: 0.698
+  ShadowFilterMode: 0
+  CascadeBlendFactor: 0.118
+  ShadowCascadeBlendMode: 0

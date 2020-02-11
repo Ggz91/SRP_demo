@@ -20,6 +20,7 @@ struct Surface
     float3 view_dir;
     bool diffuse_use_alpha;
     float3 pos_ws;
+    float3 pos;
 };
 
 float4 CalDiffuse(float4 light_dir, Surface surface)
@@ -79,6 +80,9 @@ float4 GetLightsColor(Surface surface)
     shadow.pos_ws = surface.pos_ws;
     shadow.normal_ws = surface.normal_ws;
     shadow.index = 0;
+    #if defined(_CASCADE_DITHER)
+    shadow.dither = InterleavedGradientNoise(surface.pos.xy, 0);
+    #endif
     for(int i=0; i<_LightsCount; ++i)
     {
         shadow.light_index = i;

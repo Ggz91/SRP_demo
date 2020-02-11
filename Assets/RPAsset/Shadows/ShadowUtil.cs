@@ -14,6 +14,7 @@ public struct ShadowSetting
     public float CascadeFadeFactor;
     public CusRPAsset.FilterMode FilterMode;
     public float CascadeBlendFactor;
+    public CusRPAsset.CascadeBlendMode CascadeBlendMode;
 }
 
 public class ShadowUtil
@@ -114,6 +115,7 @@ public class ShadowUtil
         //根据是否开启了Cascade Shadow来开启关键字
         SetShaderKeyword("_USE_CASCADE_SHADOW", m_setting.UseCascade);
         EnableFilterMode();
+        SetShaderKeyword("_CASCADE_DITHER", CusRPAsset.CascadeBlendMode.Dither == m_setting.CascadeBlendMode);
     }
     Vector2Int CalLightOffset(int light_index, int cascade_index, int light_count)
     {

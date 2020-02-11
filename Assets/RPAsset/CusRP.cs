@@ -27,6 +27,7 @@ public class CusRP : RenderPipeline
         public float[] CascadeRadio;
         public CusRPAsset.FilterMode FilterMode;
         public float CascadeBlendFactor;
+        public CusRPAsset.CascadeBlendMode CascadeBlendMode;
     }
     CusRPParam m_param;
     Material m_error_mat;
@@ -212,6 +213,7 @@ public class CusRP : RenderPipeline
         setting.CascadeFadeFactor = m_param.ShadowFadeFactor;
         setting.FilterMode = m_param.FilterMode;
         setting.CascadeBlendFactor = m_param.CascadeBlendFactor;
+        setting.CascadeBlendMode = m_param.CascadeBlendMode;
         m_shadow_util.Setup(in setting, context, cmd, cull_res);
     }
     #endregion
