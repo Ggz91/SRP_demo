@@ -13,6 +13,7 @@ public struct ShadowSetting
     public float ShadowFadeFactor;
     public float CascadeFadeFactor;
     public CusRPAsset.FilterMode FilterMode;
+    public float CascadeBlendFactor;
 }
 
 public class ShadowUtil
@@ -50,6 +51,7 @@ public class ShadowUtil
     int m_shadow_cascade_id;
     Vector4[] m_shadow_cascade_data = new Vector4[m_max_lights_count * m_max_lights_count];
     int m_shadow_altas_size_id;
+    int m_shader_cascade_blend_id;
     #endregion
     
     #region method
@@ -101,12 +103,14 @@ public class ShadowUtil
         m_shadow_strength_id = Shader.PropertyToID("_ShadowStrength");
         m_shadow_cascade_id = Shader.PropertyToID("_ShadowCascadeData");
         m_shadow_altas_size_id = Shader.PropertyToID("_ShadowAltasSize");
+        m_shader_cascade_blend_id = Shader.PropertyToID("_ShadowCascadeBlend");
         //给属性赋值
         Shader.SetGlobalInt(m_shadow_light_count_id, m_cull_res.visibleLights.Length);
         Shader.SetGlobalFloat(m_shadow_max_distance_id, m_setting.MaxDistance);
         float f = 1 - m_setting.CascadeFadeFactor;
         Shader.SetGlobalVector(m_shadow_fade_id, new Vector4(1.0f/m_setting.MaxDistance, 1.0f/m_setting.ShadowFadeFactor, 1.0f / (1.0f - f * f), 0));
         Shader.SetGlobalVector(m_shadow_altas_size_id, new Vector4(m_setting.Size, 1.0f/m_setting.Size));
+        Shader.SetGlobalFloat(m_shader_cascade_blend_id, m_setting.CascadeBlendFactor);
         //根据是否开启了Cascade Shadow来开启关键字
         SetShaderKeyword("_USE_CASCADE_SHADOW", m_setting.UseCascade);
         EnableFilterMode();

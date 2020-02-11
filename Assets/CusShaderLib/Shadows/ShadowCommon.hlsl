@@ -31,6 +31,7 @@ CBUFFER_START(CusShadows)
 	float _ShadowStrength[MAX_SHADOW_LIGHTS_COUNT];
 	float4 _ShadowCascadeData[MAX_SHADOW_LIGHTS_COUNT * MAX_CASCADE_COUNT];
 	float4 _ShadowAltasSize;
+	float _ShadowCascadeBlend;
 CBUFFER_END
 
 struct ShadowParam
@@ -59,7 +60,7 @@ float GetShadowStrength(ShadowParam param)
 float GetSingleShadowAuttenWithoutCascade(ShadowParam param)
 {
 	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.light_index];
-	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index] * _ShadowCascadeData[param.index].y, 1));
+	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
 	float strength = GetShadowStrength(param);
 	return lerp(1.0f, SAMPLE_TEXTURE2D_SHADOW(_ShadowMapAltas, SHADOW_SAMPLER, pos_ls), strength);
 }
@@ -70,23 +71,28 @@ float SquareDistance(float3 orig, float3 dst)
 	return dot(dst_vector, dst_vector);
 }
 
-int GetCascadeIndex(ShadowParam param)
+int GetRealIndex(ShadowParam param)
 {
-	//因为Cascade Shadow Split Data 和Matrics的排列顺序是一样的，因此，这里在确定在哪个Cascade之后就可以得到最终的matrix index
 	uint cascade_tile_size = 2;
 	uint tile_count = param.is_mul_lights ? 2 : 1;
 	int size = param.is_mul_lights ? 2 : 1;
-	
 	size *= cascade_tile_size;
+
+	float2 offset = float2(param.light_index % tile_count, param.light_index / tile_count);
+	offset *= cascade_tile_size;
+	offset.x += param.cascade_index % cascade_tile_size;
+	offset.y += param.cascade_index / cascade_tile_size;
+	return offset.y * size + offset.x;
+}
+float2 GetCascadeIndex(ShadowParam param)
+{
+	//因为Cascade Shadow Split Data 和Matrics的排列顺序是一样的，因此，这里在确定在哪个Cascade之后就可以得到最终的matrix index
 	int i =0;
 	int index = 0;
 	for(; i<MAX_CASCADE_COUNT; ++i)
 	{
-		float2 offset = float2(param.light_index % tile_count, param.light_index / tile_count);
-		offset *= cascade_tile_size;
-		offset.x += i % cascade_tile_size;
-		offset.y += i / cascade_tile_size;
-		index = offset.y * size + offset.x;
+		param.cascade_index = i;
+		index = GetRealIndex(param);
 		float4 split_data = _ShadowCascadeCullSphereInfo[index];
 		float distance_to_sphere_center = SquareDistance(param.pos_ws.xyz, split_data.xyz);
 		if(distance_to_sphere_center < split_data.w)
@@ -96,24 +102,10 @@ int GetCascadeIndex(ShadowParam param)
 		}
 	}
 	
-	return index;
+	return float2(i, index);
 }
-
-float GetSingleShadowAuttenWithCascade(ShadowParam param)
+float GetSingleCacasdeAutten(float4 pos_ls)
 {
-	if(_ShadowStrength[param.light_index] <= 0)
-	{
-		return 1.0f;
-	}
-	//判断是否在剔除距离内
-	if(param.depth > _ShadowMaxDistance)
-	{
-		return 1.0f;
-	}
-	param.index = GetCascadeIndex(param);
-	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.index];
-	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
-	float strength = GetShadowStrength(param);
 	float shadow = 0;
 	#if defined(PCF_SAMPLER_SETUP)
 		float weights[PCF_SAMPLER_COUNT];
@@ -127,6 +119,36 @@ float GetSingleShadowAuttenWithCascade(ShadowParam param)
 	#else
 		shadow = SAMPLE_TEXTURE2D_SHADOW(_ShadowMapAltas, SHADOW_SAMPLER, pos_ls);
 	#endif
+	return shadow;
+}
+float GetSingleShadowAuttenWithCascade(ShadowParam param)
+{
+	if(_ShadowStrength[param.light_index] <= 0)
+	{
+		return 1.0f;
+	}
+	//判断是否在剔除距离内
+	if(param.depth > _ShadowMaxDistance)
+	{
+		return 1.0f;
+	}
+	float2 indics = GetCascadeIndex(param);
+	param.index = indics.y;
+	param.cascade_index = indics.x;
+	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.index];
+	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
+	float strength = GetShadowStrength(param);
+	float shadow = GetSingleCacasdeAutten(pos_ls);
+	if(_ShadowCascadeBlend<0.999f && param.cascade_index != (MAX_CASCADE_COUNT-1))
+	{
+		//跟后一个Cascade混合
+		param.cascade_index = param.cascade_index + 1;
+		int after_index = GetRealIndex(param);
+		float4x4 after_ls_matrix = _ShadowLightSpaceTransformMatrics[after_index];
+		float4 after_pos_ls = mul(after_ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
+		float after_shadow = GetSingleCacasdeAutten(after_pos_ls);
+		shadow = lerp(after_shadow, shadow, _ShadowCascadeBlend);
+	}
 	return lerp(1.0f, shadow, strength);
 }
 

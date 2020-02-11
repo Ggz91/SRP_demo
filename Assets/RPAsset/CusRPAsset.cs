@@ -34,6 +34,8 @@ public class CusRPAsset : RenderPipelineAsset
         PCF7x7,
     }
     public FilterMode ShadowFilterMode = FilterMode.NONE;
+    [Range(0f, 1f)]
+    public float CascadeBlendFactor = 0.7f;
     #endregion
     
     #region  private var
@@ -65,6 +67,7 @@ public class CusRPAsset : RenderPipelineAsset
         param.ShadowFadeFactor = ShadowFadeFactor;
         param.CascadeFadeFactor = CascadeFadeFactor;
         param.FilterMode = ShadowFilterMode;
+        param.CascadeBlendFactor = CascadeBlendFactor;
     }
     void CheckParam()
     {
