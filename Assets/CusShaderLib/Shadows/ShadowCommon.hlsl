@@ -47,11 +47,7 @@ struct ShadowParam
 float GetShadowStrength(ShadowParam param)
 {
 	float strength = _ShadowStrength[param.light_index];
-	//判断是否在剔除距离内
-	if(param.depth > _ShadowMaxDistance)
-	{
-		return 1.0;
-	}
+	
 	float fade = (1 - param.depth * _ShadowFadeParam.x) * _ShadowFadeParam.y;
 	//最后边缘的阴影表现
 	if((MAX_CASCADE_COUNT - 1) == param.cascade_index)
@@ -109,6 +105,11 @@ float GetSingleShadowAuttenWithCascade(ShadowParam param)
 	{
 		return 1.0f;
 	}
+	//判断是否在剔除距离内
+	if(param.depth > _ShadowMaxDistance)
+	{
+		return 1.0f;
+	}
 	param.index = GetCascadeIndex(param);
 	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.index];
 	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
@@ -126,7 +127,6 @@ float GetSingleShadowAuttenWithCascade(ShadowParam param)
 	#else
 		shadow = SAMPLE_TEXTURE2D_SHADOW(_ShadowMapAltas, SHADOW_SAMPLER, pos_ls);
 	#endif
-	
 	return lerp(1.0f, shadow, strength);
 }
 
