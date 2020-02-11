@@ -9,7 +9,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: CusLitMat
   m_Shader: {fileID: 4800000, guid: 6f3b31f16f470bc44976d8807c700e84, type: 3}
-  m_ShaderKeywords: _ALPHATODIFFUSE _CLIPPING
+  m_ShaderKeywords: _ALPHATODIFFUSE _CLIPPING _RECEIVE_SHADOW _SHADOW_CLIP
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -74,6 +74,8 @@ Material:
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
+    - _RecevieShadow: 1
+    - _ShadowClip: 1
     - _Smoothness: 1
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1

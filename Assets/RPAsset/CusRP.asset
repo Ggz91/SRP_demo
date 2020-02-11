@@ -18,14 +18,14 @@ MonoBehaviour:
   GPUInstancing: 0
   CastShadows: 1
   ShadowAtlasSize: 4096
-  ShadowMaxDistance: 43
+  ShadowMaxDistance: 100
   UsCaseCasde: 1
   CascadeRadio:
   - 0.25
   - 0.5
   - 0.75
   ShadowFadeFactor: 0.1
-  CascadeFadeFactor: 1
+  CascadeFadeFactor: 0.1
   ShadowFilterMode: 0
-  CascadeBlendFactor: 0.118
+  CascadeBlendFactor: 0.831
   ShadowCascadeBlendMode: 0

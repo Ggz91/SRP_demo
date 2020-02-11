@@ -14,6 +14,8 @@ Shader "CusRP/CusLitShader"
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.8 
         _Metallic("Metallic", Range(0.0, 1.0)) = 0.8
         [Toggle(_ALPHATODIFFUSE)] _AlphaToDiffuse("Apply alpha to diffuse", float) = 1
+        [Toggle(_SHADOW_CLIP)] _ShadowClip("Shadow Clip", float) = 1
+        [Toggle(_RECEIVE_SHADOW)] _RecevieShadow("Recevie Shadow", float) = 1
     }
     SubShader
     {
@@ -36,6 +38,7 @@ Shader "CusRP/CusLitShader"
             #pragma shader_feature _USE_CASCADE_SHADOW
             #pragma multi_compile _ _PCF3x3 _PCF5x5 _PCF7x7
             #pragma shader_feature _CASCADE_DITHER
+            #pragma shader_feature _RECEIVE_SHADOW
             UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
                 UNITY_DEFINE_INSTANCED_PROP(float4, _Col)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Clip)
@@ -112,7 +115,7 @@ Shader "CusRP/CusLitShader"
 
             #pragma vertex vert
             #pragma fragment frag
-			#pragma shader_feature _CLIPPING
+			#pragma shader_feature _SHADOW_CLIP
 			#pragma multi_compile_instancing
             
 			 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
@@ -160,7 +163,7 @@ Shader "CusRP/CusLitShader"
             void frag(v2f indata)
             {
                 float4 tex_col = tex2D(_Tex, indata.uv.xy);
-                #if defined(_CLIPPING)
+                #if defined(_SHADOW_CLIP)
                     clip(tex_col.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Clip));
                 #endif
             }

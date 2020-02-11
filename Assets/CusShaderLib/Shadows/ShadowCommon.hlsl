@@ -166,6 +166,9 @@ float GetSingleShadowAuttenWithCascade(ShadowParam param)
 
 float GetSingleShadowAutten(ShadowParam param)
 {
+	#if !defined(_RECEIVE_SHADOW)
+		return 1.0;
+	#endif
 	#if defined(_USE_CASCADE_SHADOW)
 		return	GetSingleShadowAuttenWithCascade(param);
 	#else
