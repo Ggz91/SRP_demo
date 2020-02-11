@@ -241,6 +241,8 @@ public class ShadowUtil
                 i, j, cascade_count, cascade_radio, cascade_tile_size, m_cull_res.visibleLights[i].light.shadowNearPlane,
                 out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix,
                 out ShadowSplitData splitData);
+                float cullingFactor =Mathf.Max(0f, 0.8f - m_setting.CascadeFadeFactor);
+                splitData.shadowCascadeBlendCullingFactor = cullingFactor;
                 settings.splitData = splitData;
                 m_cmd_buffer.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
                 m_cmd_buffer.SetViewport(GetShadowMapRect(i, j, m_cull_res.visibleLights.Length, cascade_tile_size));
