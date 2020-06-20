@@ -59,11 +59,18 @@ public class CusRPAsset : RenderPipelineAsset
         public CascadeBlendMode ShadowCascadeBlendMode;
     }
     
+    [System.Serializable]
+    public struct SBakedLightSettings
+    {
+        [SerializeField]
+        public bool LightMapOn;
+    }
     public SGeneralSettings  GeneralSettings;
     public SBatcherSettings BatcherSettings;
     
     public SShadowSettings ShadowSettings;
-        
+    public SBakedLightSettings BakedLightSettings;
+
     public enum FilterMode
     {
         NONE = 0,
@@ -109,6 +116,7 @@ public class CusRPAsset : RenderPipelineAsset
         param.FilterMode = ShadowSettings.ShadowFilterMode;
         param.CascadeBlendFactor = ShadowSettings.CascadeBlendFactor;
         param.CascadeBlendMode = ShadowSettings.ShadowCascadeBlendMode;
+        param.LightMapOn = BakedLightSettings.LightMapOn;
     }
     void CheckParam()
     {
@@ -142,12 +150,16 @@ public class CusRPAsset : RenderPipelineAsset
         ShadowSettings.CascadeBlendFactor = 0.7f;
         ShadowSettings.ShadowCascadeBlendMode = CascadeBlendMode.NONE;
     }
+    void InitBakedLightSettigns()
+    {
+        BakedLightSettings.LightMapOn = true;
+    }
     void InitDefaultSettings()
     {
         InitGeneralSettings();
         InitBatcherSettings();
         InitShadowSettings();
-
+        InitBakedLightSettigns();
     }
     #endregion
 

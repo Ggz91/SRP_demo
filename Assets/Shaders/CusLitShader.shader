@@ -34,6 +34,7 @@ Shader "CusRP/CusLitShader"
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_instancing
+            #pragma multi_compile _ LIGHTMAP_ON
             #pragma shader_feature _CLIPPING
             #pragma shader_feature _ALPHATODIFFUSE
             #pragma shader_feature _USE_CASCADE_SHADOW
@@ -47,13 +48,15 @@ Shader "CusRP/CusLitShader"
                 UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)
             UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
            
-            sampler2D _Tex;
+            sampler2D _Tex;           
+
             struct a2v
             {
                 float4 pos : POSITION;
                 float4 uv : TEXCOORD;
                 float4 normal : NORMAL;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
+                GI_IN_DATA(1)
             };
             struct v2f
             {
@@ -62,6 +65,7 @@ Shader "CusRP/CusLitShader"
                 float3 pos_ws : TEXCOORD2;
                 float3 normal_ws : TEXCOORD3;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
+                GI_OUT_DATA
             };
 
             v2f vert(a2v i)
@@ -76,6 +80,7 @@ Shader "CusRP/CusLitShader"
                
                 //没有法线贴图在vs里面计算normal_ws
                 o.normal_ws = TransformObjectToWorldNormal(i.normal.xyz);
+                TRANSFORM_GI_DATA(i,o)
                 return o;
             }
             float4 frag(v2f indata) : SV_TARGET
@@ -100,6 +105,10 @@ Shader "CusRP/CusLitShader"
                 surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
                 surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic);
                 surface.pos = indata.pos.xyz;
+                surface.lightmap_uv = float2(0.0, 0.0);
+                #ifdef LIGHTMAP_ON
+                surface.lightmap_uv = indata.lightmap_uv;
+                #endif
                 color.xyz = GetLightsColor(surface).xyz;
 
                 return color;

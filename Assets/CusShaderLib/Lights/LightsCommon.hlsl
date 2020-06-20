@@ -1,6 +1,7 @@
 ﻿#ifndef LIGHTS_COMMON_HLSL
 #define LIGHTS_COMMON_HLSL
 
+#include "../CusShaderLib/BakedLights/GI.hlsl"
 #include "../CusShaderLib/Shadows/ShadowCommon.hlsl"
 
 #define MAX_LIGHTS_NUM 4
@@ -21,6 +22,9 @@ struct Surface
     bool diffuse_use_alpha;
     float3 pos_ws;
     float3 pos;
+    #ifdef LIGHTMAP_ON
+    float2 lightmap_uv;
+    #endif
 };
 
 float4 CalDiffuse(float4 light_dir, Surface surface)
@@ -88,6 +92,10 @@ float4 GetLightsColor(Surface surface)
         shadow.light_index = i;
         color +=  GetSingleLightsColor(i, surface) * GetSingleShadowAutten(shadow);
     }
+
+    //加入lightMap的影响
+    GI gi = GetGI(GI_FRAGMENT_DATA(surface));
+    color.rgb = gi.diffuse;
     return color;
 }
 
