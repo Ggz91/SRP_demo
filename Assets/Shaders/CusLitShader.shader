@@ -25,6 +25,7 @@ Shader "CusRP/CusLitShader"
         {
             Blend [_SrcBlend] [_DstBlend]
             ZWrite [_ZWrite]
+            Cull Off
             HLSLPROGRAM
             #include "../CusShaderLib/Common.hlsl"
 
@@ -107,7 +108,7 @@ Shader "CusRP/CusLitShader"
         }
         Pass {
 			Tags { "LightMode" = "ShadowCaster"}
-
+            Cull Off
 			//ColorMask 0
 
 			HLSLPROGRAM
