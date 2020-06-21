@@ -8,11 +8,13 @@
     #define GI_OUT_DATA float2 lightmap_uv : VAR_LIGHT_MAP_UV;
     #define TRANSFORM_GI_DATA(in, out) out.lightmap_uv = in.lightmap_uv * unity_LightmapST.xy + unity_LightmapST.zw;
     #define GI_FRAGMENT_DATA(in) in.lightmap_uv
+    #define COPY_GI_DATA(in, out) out.lightmap_uv = in.lightmap_uv;
 #else
     #define GI_IN_DATA(NO)
     #define GI_OUT_DATA 
     #define TRANSFORM_GI_DATA(in, out) 
     #define GI_FRAGMENT_DATA(in) 0.0
+    #define COPY_GI_DATA(in, out) 
 #endif
 
 TEXTURE2D(unity_Lightmap);

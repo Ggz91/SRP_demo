@@ -131,11 +131,11 @@ public class CusRP : RenderPipeline
         //设置多变体
         if(m_param.LightMapOn)
         {
-            cmd.EnableShaderKeyword("LIGHTMAP_ON");
+            Shader.EnableKeyword("LIGHTMAP_ON");
         } 
         else
         {
-            cmd.DisableShaderKeyword("LIGHTMAP_ON");
+            Shader.DisableKeyword("LIGHTMAP_ON");
         }
         context.ExecuteCommandBuffer(cmd);
         cmd.Clear();

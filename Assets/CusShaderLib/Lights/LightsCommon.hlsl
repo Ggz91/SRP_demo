@@ -67,8 +67,12 @@ float4 GetBRDF(float4 light_dir, float4 color, Surface surface)
 
 float4 GetSingleLightsColor(int index, Surface surface)
 {
+     //加入lightMap的影响
+    GI gi = GetGI(GI_FRAGMENT_DATA(surface));
     float4 dir = -_LightsDirections[index];
     float4 color = _LightsColors[index];
+    color.rgb = gi.diffuse;
+    
     float4 light_color = saturate(dot(surface.normal_ws, dir.xyz))*color;
     return light_color * GetBRDF(dir, color, surface);
 }
@@ -93,9 +97,7 @@ float4 GetLightsColor(Surface surface)
         color +=  GetSingleLightsColor(i, surface) * GetSingleShadowAutten(shadow);
     }
 
-    //加入lightMap的影响
-    GI gi = GetGI(GI_FRAGMENT_DATA(surface));
-    color.rgb = gi.diffuse;
+   
     return color;
 }
 
