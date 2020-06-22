@@ -19,6 +19,8 @@
 
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
+TEXTURE3D_FLOAT(unity_ProbeVolumeSH);
+SAMPLER(samplerunity_ProbeVolumeSH);
 
 struct GI
 {
@@ -45,15 +47,27 @@ float3 SampleLightProbes(Surface surface)
     #ifdef LIGHTMAP_ON
         return 0.0;
     #else
-        float4 coefficient[7];
-        coefficient[0] = unity_SHAr;
-        coefficient[1] = unity_SHAg;
-        coefficient[2] = unity_SHAb;
-        coefficient[3] = unity_SHBr;
-        coefficient[4] = unity_SHBg;
-        coefficient[5] = unity_SHBb;
-        coefficient[6] = unity_SHC;
-        return max(0.0f, SampleSH9(coefficient, surface.normal_ws));
+        if(unity_ProbeVolumeParams.x)
+        {
+            return SampleProbeVolumeSH4(TEXTURE3D_ARGS(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), surface.pos_ws, surface.normal_ws, 
+            unity_probeVolumeWorldToObject,
+            unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z,
+            unity_ProbeVolumeMin.xyz, unity_ProbeVolumeSizeInv.xyz);
+
+        }
+        else
+        {
+            float4 coefficient[7];
+            coefficient[0] = unity_SHAr;
+            coefficient[1] = unity_SHAg;
+            coefficient[2] = unity_SHAb;
+            coefficient[3] = unity_SHBr;
+            coefficient[4] = unity_SHBg;
+            coefficient[5] = unity_SHBb;
+            coefficient[6] = unity_SHC;
+            return max(0.0f, SampleSH9(coefficient, surface.normal_ws));
+        }
+        
     #endif
 }
 
