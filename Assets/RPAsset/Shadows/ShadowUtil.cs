@@ -234,6 +234,11 @@ public class ShadowUtil
         int cascade_tile_size = TileSize / 2;
         for(int i = 0; i<m_cull_res.visibleLights.Length; ++i)
         {
+            var light = m_cull_res.visibleLights[i];
+            if("PreRenderLight" == light.light.name)
+            {
+                continue;
+            }
             for(int j = 0; j <= m_setting.CascadeRadio.Length; ++j)
             {
                 ShadowDrawingSettings settings = new ShadowDrawingSettings(m_cull_res, i);
@@ -248,6 +253,7 @@ public class ShadowUtil
                 m_cmd_buffer.SetViewport(GetShadowMapRect(i, j, m_cull_res.visibleLights.Length, cascade_tile_size));
                 m_cmd_buffer.SetGlobalDepthBias(0f, m_cull_res.visibleLights[i].light.shadowBias);
                 ExecuteBuffer();
+                Debug.Log("[ShadowRenderDebug] light index : " + settings.lightIndex.ToString());
                 m_context.DrawShadows(ref settings);
                 m_cmd_buffer.SetGlobalDepthBias(0f, 0f);
                 ExecuteBuffer();
