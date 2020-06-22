@@ -4,7 +4,7 @@ Shader "CusRP/CusLitShader"
 {
     Properties
     {
-        _Col ("Color", Color) = (1, 1, 0, 1)
+        _Color ("Color", Color) = (1, 1, 0, 1)
         _Tex("Texture", 2D) = "white" {}
         [NoScaleOffset] _EmissionMap("Emission", 2D) = "white" {}
         [HDR] _EmissionColor("Emission", Color) = (0, 0, 0, 0)
@@ -18,6 +18,7 @@ Shader "CusRP/CusLitShader"
         [Toggle(_ALPHATODIFFUSE)] _AlphaToDiffuse("Apply alpha to diffuse", float) = 1
         [Toggle(_SHADOW_CLIP)] _ShadowClip("Shadow Clip", float) = 1
         [Toggle(_RECEIVE_SHADOW)] _RecevieShadow("Recevie Shadow", float) = 1
+        [HideInInspector] _MainTex("Texture for Lightmap", 2D) = "white" {}
     }
     SubShader
     {
@@ -44,7 +45,7 @@ Shader "CusRP/CusLitShader"
             #pragma shader_feature _CASCADE_DITHER
             #pragma shader_feature _RECEIVE_SHADOW
             UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-                UNITY_DEFINE_INSTANCED_PROP(float4, _Col)
+                UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Clip)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Smoothness)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)
@@ -94,7 +95,7 @@ Shader "CusRP/CusLitShader"
                     clip(tex_col.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Clip));
                 #endif
                 UNITY_SETUP_INSTANCE_ID(indata);
-                float4 color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Col) * tex_col;
+                float4 color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Color) * tex_col;
                 //加入光照影响
                 Surface surface;
                 #if defined(_ALPHATODIFFUSE)
@@ -133,13 +134,14 @@ Shader "CusRP/CusLitShader"
 			#pragma multi_compile_instancing
             
 			 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-                UNITY_DEFINE_INSTANCED_PROP(float4, _Col)
+                UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Clip)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Smoothness)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)
             UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
            
             sampler2D _Tex;
+            
             struct indata
             {
                 float4 pos : POSITION;
@@ -184,7 +186,7 @@ Shader "CusRP/CusLitShader"
 
 			ENDHLSL
 		}
-        Pass
+        /*Pass
         {
             Tags {"LightMode" = "Meta"}
 
@@ -196,21 +198,25 @@ Shader "CusRP/CusLitShader"
             #pragma fragment MetaFrag
             #include "../CusShaderLib/Common.hlsl"
             #include "../CusShaderLib/Lights/LightsCommon.hlsl"
-            
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+
             #pragma shader_feature _ALPHATODIFFUSE
+			#pragma multi_compile_instancing
 
             UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
-                UNITY_DEFINE_INSTANCED_PROP(float4, _Col)
+                UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Clip)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Smoothness)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)
+                UNITY_DEFINE_INSTANCED_PROP(float4, _EmissionColor)
             UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
             
             struct a2v
             {
                 float3 pos : POSITION;
                 float2 uv : TEXCOORD0;
-                float2 lightmap_uv : TEXCOORD1;
+                float2 uv1 : TEXCOORD1;
+                float2 uv2 : TEXCOORD2;
             };
             
             struct v2f
@@ -223,11 +229,21 @@ Shader "CusRP/CusLitShader"
             float4 _Tex_ST;
             float unity_OneOverOutputBoost;
             float unity_MaxOutputValue;
+            sampler2D _EmissionMap;
+            float unity_UseLinearSpace;
 
             v2f MetaVertex(a2v input)
             {
                 v2f output;
-                input.pos.xy = input.lightmap_uv * unity_LightmapST.xy + unity_LightmapST.zw;
+                if(unity_MetaVertexControl.y)
+                {
+                    input.pos.xy = input.uv2 * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
+
+                }
+                else if (unity_MetaVertexControl.x)
+                {
+                    input.pos.xy = input.uv1 * unity_LightmapST.xy + unity_LightmapST.zw;
+                }
                 input.pos.z = input.pos.z > 0.0f ? FLT_MIN : 0.0f;
                 output.pos_cs = TransformWorldToHClip(TransformObjectToWorld(input.pos));
                 output.uv = input.uv * _Tex_ST.xy + _Tex_ST.zw;
@@ -236,7 +252,7 @@ Shader "CusRP/CusLitShader"
 
             float4 MetaFrag(v2f indata) : SV_TARGET
             {
-                float4 color = tex2D(_Tex, indata.uv) * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Col);
+                float4 color = tex2D(_Tex, indata.uv) * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Color);
                  Surface surface;
                 #if defined(_ALPHATODIFFUSE)
                     surface.diffuse_use_alpha = true;
@@ -261,11 +277,20 @@ Shader "CusRP/CusLitShader"
                     meta.rgb += brdf_spe.rgb * roughness * 0.5f;
                     meta.rgb = min(PositivePow(meta.rgb, unity_OneOverOutputBoost), unity_MaxOutputValue);
                 }
+                else if(unity_MetaFragmentControl.y)
+                {
+                    float4 emission = tex2D(_EmissionMap, indata.uv.xy) * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _EmissionColor);
+                    if (unity_UseLinearSpace)
+                        emission = emission;
+                    else
+                        emission = LinearToSRGB(emission);
+
+                    meta = float4(emission.xyz, 1.0);
+                }
                 return meta;
             }
             ENDHLSL
-        }
+        }*/
     }
-
-
+    CustomEditor "CustomShaderGUI"
 }

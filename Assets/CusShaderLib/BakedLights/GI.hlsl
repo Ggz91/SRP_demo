@@ -27,9 +27,20 @@ struct GI
     float3 diffuse;
 };
 
-float3 SampleLightMap(float2 lightmap_uv)
+float3 SampleLightMap(float2 lightmap_uv, float3 normal)
 {
-    #ifdef LIGHTMAP_ON
+    #ifdef DIRLIGHTMAP_COMBINED
+        return SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap),
+        TEXTURE2D_ARGS(unity_LightmapInd, samplerunity_Lightmap),
+        lightmap_uv, float4(1.0, 1.0, 0.0, 0.0), normal,  
+        #ifdef UNITY_LIGHTMAP_FULL_HDR
+            false,
+        #else
+            true,
+        #endif 
+        float4(LIGHTMAP_HDR_MULTIPLIER, LIGHTMAP_HDR_EXPONENT, 0.0, 0.0));
+
+    #elif LIGHTMAP_ON
         return SampleSingleLightmap(TEXTURE2D_ARGS(unity_Lightmap, samplerunity_Lightmap), lightmap_uv, float4(1.0, 1.0, 0.0, 0.0),
         #ifdef UNITY_LIGHTMAP_FULL_HDR
             false,
@@ -74,7 +85,7 @@ float3 SampleLightProbes(Surface surface)
 GI GetGI(Surface surface)
 {
     GI gi;
-    gi.diffuse = SampleLightMap(GI_FRAGMENT_DATA(surface)) + SampleLightProbes(surface);
+    gi.diffuse = SampleLightMap(GI_FRAGMENT_DATA(surface), surface.normal_ws) + SampleLightProbes(surface);
     return gi;
 }
 #endif

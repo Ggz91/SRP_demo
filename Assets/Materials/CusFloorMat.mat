@@ -10,7 +10,7 @@ Material:
   m_Name: CusFloorMat
   m_Shader: {fileID: 4800000, guid: 6f3b31f16f470bc44976d8807c700e84, type: 3}
   m_ShaderKeywords: _ALPHATODIFFUSE _CLIPPING _RECEIVE_SHADOW _SHADOW_CLIP
-  m_LightmapFlags: 4
+  m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 3000
@@ -85,4 +85,4 @@ Material:
     m_Colors:
     - _Col: {r: 0.39869905, g: 1, b: 0, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _EmissionColor: {r: 0.60382754, g: 0.60382754, b: 0.60382754, a: 1}

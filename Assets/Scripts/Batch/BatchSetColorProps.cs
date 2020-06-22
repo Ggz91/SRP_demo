@@ -15,7 +15,6 @@ public class BatchSetColorProps : MonoBehaviour
     }
     void SetPropertyBlock()
     {
-        return;
         MaterialPropertyBlock prop_block = new MaterialPropertyBlock();
         //场景中所有带mesh renderer的物体
         foreach(GameObject obj in UnityEngine.Object.FindObjectsOfType(typeof(GameObject)))
@@ -26,7 +25,7 @@ public class BatchSetColorProps : MonoBehaviour
                 continue;
             }
             
-            prop_block.SetColor("_Col", GenRadomColor());
+            prop_block.SetColor("_Color", GenRadomColor());
             //设置位置
             
             renderer.SetPropertyBlock(prop_block);
@@ -44,7 +43,7 @@ public class BatchSetColorProps : MonoBehaviour
             }
             Shader shader = AssetDatabase.LoadAssetAtPath("Assets/Shaders/CusUnlitShader.shader", typeof(Shader)) as Shader;
             renderer.sharedMaterial = new Material(shader);
-            renderer.sharedMaterial.SetColor("_Col", GenRadomColor());
+            renderer.sharedMaterial.SetColor("_Color", GenRadomColor());
             renderer.sharedMaterial.SetFloat("_SrcBlend", default_mat.GetFloat("_SrcBlend"));
             renderer.sharedMaterial.SetFloat("_DstBlend", default_mat.GetFloat("_DstBlend"));
             renderer.sharedMaterial.SetTexture("_Tex", default_mat.GetTexture("_Tex"));

@@ -86,7 +86,7 @@ public class InitSceneUtilEditorComponent
         obj.transform.localScale *= UnityEngine.Random.Range(0f, 1f);
         MeshRenderer renderer = obj.GetComponent<MeshRenderer>();
         renderer.sharedMaterial = new Material(default_mat);
-        renderer.sharedMaterial.SetColor("_Col", GenRadomColor());
+        renderer.sharedMaterial.SetColor("_Color", GenRadomColor());
         return obj;
     }
 

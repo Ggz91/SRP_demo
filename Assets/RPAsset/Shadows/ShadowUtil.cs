@@ -27,7 +27,6 @@ public class ShadowUtil
 
     const int m_max_lights_count = 4;
     const int m_max_cascade_count = 4;
-    string m_tag = "RenderShadows";
     Matrix4x4[] m_shadow_light_space_matrics = new Matrix4x4[m_max_lights_count * m_max_cascade_count];
     //Shader 相关属性
     //Altas 的buff id
