@@ -20,9 +20,9 @@ Shader "CusRP/CusLitShader"
     SubShader
     {
         //Tags{"RenderType"="CusRP"}
-        Tags{"LightMode"="CusRP"}
         Pass
         {
+            Tags{"LightMode"="CusRP"}
             Blend [_SrcBlend] [_DstBlend]
             ZWrite [_ZWrite]
             Cull Off
@@ -112,7 +112,8 @@ Shader "CusRP/CusLitShader"
             }
             ENDHLSL
         }
-        Pass {
+        Pass 
+        {
 			Tags { "LightMode" = "ShadowCaster"}
             Cull Off
 			//ColorMask 0
@@ -177,6 +178,87 @@ Shader "CusRP/CusLitShader"
 
 			ENDHLSL
 		}
+        Pass
+        {
+            Tags {"LightMode" = "Meta"}
+
+            Cull Off
+
+            HLSLPROGRAM
+            #pragma target 3.5
+            #pragma vertex MetaVertex
+            #pragma fragment MetaFrag
+            #include "../CusShaderLib/Common.hlsl"
+            #include "../CusShaderLib/Lights/LightsCommon.hlsl"
+            
+            #pragma shader_feature _ALPHATODIFFUSE
+
+            UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
+                UNITY_DEFINE_INSTANCED_PROP(float4, _Col)
+                UNITY_DEFINE_INSTANCED_PROP(float, _Clip)
+                UNITY_DEFINE_INSTANCED_PROP(float, _Smoothness)
+                UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)
+            UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
+            
+            struct a2v
+            {
+                float3 pos : POSITION;
+                float2 uv : TEXCOORD0;
+                float2 lightmap_uv : TEXCOORD1;
+            };
+            
+            struct v2f
+            {
+                float4 pos_cs : SV_POSITION;
+                float2 uv : TEXCOORD;
+            };
+
+            sampler2D _Tex;  
+            float4 _Tex_ST;
+            float unity_OneOverOutputBoost;
+            float unity_MaxOutputValue;
+
+            v2f MetaVertex(a2v input)
+            {
+                v2f output;
+                input.pos.xy = input.lightmap_uv * unity_LightmapST.xy + unity_LightmapST.zw;
+                input.pos.z = input.pos.z > 0.0f ? FLT_MIN : 0.0f;
+                output.pos_cs = TransformWorldToHClip(TransformObjectToWorld(input.pos));
+                output.uv = input.uv * _Tex_ST.xy + _Tex_ST.zw;
+                return output;
+            }
+
+            float4 MetaFrag(v2f indata) : SV_TARGET
+            {
+                float4 color = tex2D(_Tex, indata.uv) * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Col);
+                 Surface surface;
+                #if defined(_ALPHATODIFFUSE)
+                    surface.diffuse_use_alpha = true;
+                #else
+                    surface.diffuse_use_alpha = false;
+                #endif
+                //surface.pos_ws = indata.pos_ws;
+                surface.color = color;
+                //surface.normal_ws = normalize( indata.normal_ws);
+                //surface.view_dir = normalize(_WorldSpaceCameraPos -indata.pos_ws);
+                surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
+                surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic);
+
+                float4 brdf_diffuse = CalDiffuse(surface);
+                float4 brdf_spe = CalSpecular(surface);
+                float roughness = PerceptualSmoothnessToPerceptualRoughness(surface.smoothness);
+                roughness = PerceptualRoughnessToRoughness(roughness); 
+                float4 meta = 0.0f;
+                if(unity_MetaFragmentControl.x)
+                {
+                    meta = float4(brdf_diffuse.xyz, 1.0f);
+                    meta.rgb += brdf_spe.rgb * roughness * 0.5f;
+                    meta.rgb = min(PositivePow(meta.rgb, unity_OneOverOutputBoost), unity_MaxOutputValue);
+                }
+                return meta;
+            }
+            ENDHLSL
+        }
     }
 
 

@@ -29,7 +29,7 @@ CBUFFER_END
 
 
 
-float4 CalDiffuse(float4 light_dir, Surface surface)
+float4 CalDiffuse(Surface surface)
 {
     float range = 1 - MIN_REFLECTIVITY;
     float alpha = surface.diffuse_use_alpha ? surface.color.a : 1;
@@ -60,7 +60,7 @@ float CalSpecularStrength(Surface surface, float4 light_dir)
 
 float4 GetBRDF(float4 light_dir, float4 color, Surface surface)
 {
-    float4 diffuse = CalDiffuse(light_dir, surface);
+    float4 diffuse = CalDiffuse(surface);
     float4 specular = CalSpecular(surface);
     float4 specular_strength = CalSpecularStrength(surface, light_dir);
     float4 brdf_col = diffuse + specular * specular_strength;
@@ -73,7 +73,7 @@ float4 GetSingleLightsColor(int index, Surface surface)
     GI gi = GetGI(surface);
     float4 dir = -_LightsDirections[index];
     float4 color = _LightsColors[index];
-    color.rgb = gi.diffuse;
+    color.rgb = gi.diffuse * CalDiffuse(surface).rgb;
     
     float4 light_color = saturate(dot(surface.normal_ws, dir.xyz))*color;
     return light_color * GetBRDF(dir, color, surface);
