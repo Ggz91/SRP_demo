@@ -1,17 +1,6 @@
 ﻿#ifndef LIGHTS_COMMON_HLSL
 #define LIGHTS_COMMON_HLSL
 
-#include "../CusShaderLib/BakedLights/GI.hlsl"
-#include "../CusShaderLib/Shadows/ShadowCommon.hlsl"
-
-#define MAX_LIGHTS_NUM 4
-#define MIN_REFLECTIVITY 0.04
-CBUFFER_START(Lights_Prop)
-    int _LightsCount;
-    float4 _LightsDirections[MAX_LIGHTS_NUM];
-    float4 _LightsColors[MAX_LIGHTS_NUM];
-CBUFFER_END
-
 struct Surface
 {
     float4 color;
@@ -26,6 +15,19 @@ struct Surface
     float2 lightmap_uv;
     #endif
 };
+
+#include "../CusShaderLib/BakedLights/GI.hlsl"
+#include "../CusShaderLib/Shadows/ShadowCommon.hlsl"
+
+#define MAX_LIGHTS_NUM 4
+#define MIN_REFLECTIVITY 0.04
+CBUFFER_START(Lights_Prop)
+    int _LightsCount;
+    float4 _LightsDirections[MAX_LIGHTS_NUM];
+    float4 _LightsColors[MAX_LIGHTS_NUM];
+CBUFFER_END
+
+
 
 float4 CalDiffuse(float4 light_dir, Surface surface)
 {
@@ -67,8 +69,8 @@ float4 GetBRDF(float4 light_dir, float4 color, Surface surface)
 
 float4 GetSingleLightsColor(int index, Surface surface)
 {
-     //加入lightMap的影响
-    GI gi = GetGI(GI_FRAGMENT_DATA(surface));
+    //加入lightMap的影响
+    GI gi = GetGI(surface);
     float4 dir = -_LightsDirections[index];
     float4 color = _LightsColors[index];
     color.rgb = gi.diffuse;

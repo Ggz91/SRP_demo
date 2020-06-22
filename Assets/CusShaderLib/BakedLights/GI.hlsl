@@ -40,10 +40,27 @@ float3 SampleLightMap(float2 lightmap_uv)
     #endif
 }
 
-GI GetGI(float2 lightmap_uv)
+float3 SampleLightProbes(Surface surface)
+{
+    #ifdef LIGHTMAP_ON
+        return 0.0;
+    #else
+        float4 coefficient[7];
+        coefficient[0] = unity_SHAr;
+        coefficient[1] = unity_SHAg;
+        coefficient[2] = unity_SHAb;
+        coefficient[3] = unity_SHBr;
+        coefficient[4] = unity_SHBg;
+        coefficient[5] = unity_SHBb;
+        coefficient[6] = unity_SHC;
+        return max(0.0f, SampleSH9(coefficient, surface.normal_ws));
+    #endif
+}
+
+GI GetGI(Surface surface)
 {
     GI gi;
-    gi.diffuse = SampleLightMap(lightmap_uv);
+    gi.diffuse = SampleLightMap(GI_FRAGMENT_DATA(surface)) + SampleLightProbes(surface);
     return gi;
 }
 #endif
