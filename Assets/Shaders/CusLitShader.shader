@@ -6,6 +6,8 @@ Shader "CusRP/CusLitShader"
     {
         _Col ("Color", Color) = (1, 1, 0, 1)
         _Tex("Texture", 2D) = "white" {}
+        [NoScaleOffset] _EmissionMap("Emission", 2D) = "white" {}
+        [HDR] _EmissionColor("Emission", Color) = (0, 0, 0, 0)
         [Enum(UnityEngine.Rendering.BlendMode)] _SrcBlend ("Src Blend", float) = 1
         [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend ("Dst Blend", float) = 0
         [Enum(On, 1, Off, 0)] _ZWrite ("ZWrite", float) = 1 
@@ -46,9 +48,11 @@ Shader "CusRP/CusLitShader"
                 UNITY_DEFINE_INSTANCED_PROP(float, _Clip)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Smoothness)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)
+                UNITY_DEFINE_INSTANCED_PROP(float4, _EmissionColor)
             UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
            
             sampler2D _Tex;           
+            sampler2D _EmissionMap;
 
             struct a2v
             {
@@ -107,7 +111,9 @@ Shader "CusRP/CusLitShader"
                 surface.pos = indata.pos.xyz;
                 COPY_GI_DATA(indata, surface)
                 color.xyz = GetLightsColor(surface).xyz;
-
+                //加入自发光
+                float4 emisson = tex2D(_EmissionMap, indata.uv.xy) * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _EmissionColor);
+                color.xyz += emisson.xyz;
                 return color;
             }
             ENDHLSL
