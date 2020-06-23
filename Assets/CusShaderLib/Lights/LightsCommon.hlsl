@@ -1,16 +1,6 @@
 ﻿#ifndef LIGHTS_COMMON_HLSL
 #define LIGHTS_COMMON_HLSL
 
-#include "../CusShaderLib/Shadows/ShadowCommon.hlsl"
-
-#define MAX_LIGHTS_NUM 4
-#define MIN_REFLECTIVITY 0.04
-CBUFFER_START(Lights_Prop)
-    int _LightsCount;
-    float4 _LightsDirections[MAX_LIGHTS_NUM];
-    float4 _LightsColors[MAX_LIGHTS_NUM];
-CBUFFER_END
-
 struct Surface
 {
     float4 color;
@@ -21,9 +11,25 @@ struct Surface
     bool diffuse_use_alpha;
     float3 pos_ws;
     float3 pos;
+    #ifdef LIGHTMAP_ON
+    float2 lightmap_uv;
+    #endif
 };
 
-float4 CalDiffuse(float4 light_dir, Surface surface)
+#include "../CusShaderLib/BakedLights/GI.hlsl"
+#include "../CusShaderLib/Shadows/ShadowCommon.hlsl"
+
+#define MAX_LIGHTS_NUM 4
+#define MIN_REFLECTIVITY 0.04
+CBUFFER_START(Lights_Prop)
+    int _LightsCount;
+    float4 _LightsDirections[MAX_LIGHTS_NUM];
+    float4 _LightsColors[MAX_LIGHTS_NUM];
+CBUFFER_END
+
+
+
+float4 CalDiffuse(Surface surface)
 {
     float range = 1 - MIN_REFLECTIVITY;
     float alpha = surface.diffuse_use_alpha ? surface.color.a : 1;
@@ -54,7 +60,7 @@ float CalSpecularStrength(Surface surface, float4 light_dir)
 
 float4 GetBRDF(float4 light_dir, float4 color, Surface surface)
 {
-    float4 diffuse = CalDiffuse(light_dir, surface);
+    float4 diffuse = CalDiffuse(surface);
     float4 specular = CalSpecular(surface);
     float4 specular_strength = CalSpecularStrength(surface, light_dir);
     float4 brdf_col = diffuse + specular * specular_strength;
@@ -63,8 +69,12 @@ float4 GetBRDF(float4 light_dir, float4 color, Surface surface)
 
 float4 GetSingleLightsColor(int index, Surface surface)
 {
+    //加入lightMap的影响
+    GI gi = GetGI(surface);
     float4 dir = -_LightsDirections[index];
     float4 color = _LightsColors[index];
+    color.rgb += gi.diffuse * CalDiffuse(surface).rgb;
+    
     float4 light_color = saturate(dot(surface.normal_ws, dir.xyz))*color;
     return light_color * GetBRDF(dir, color, surface);
 }
@@ -88,6 +98,8 @@ float4 GetLightsColor(Surface surface)
         shadow.light_index = i;
         color +=  GetSingleLightsColor(i, surface) * GetSingleShadowAutten(shadow);
     }
+
+   
     return color;
 }
 

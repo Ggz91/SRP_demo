@@ -28,6 +28,7 @@ public class CusRP : RenderPipeline
         public CusRPAsset.FilterMode FilterMode;
         public float CascadeBlendFactor;
         public CusRPAsset.CascadeBlendMode CascadeBlendMode;
+        public bool LightMapOn;
     }
     CusRPParam m_param;
     Material m_error_mat;
@@ -60,6 +61,7 @@ public class CusRP : RenderPipeline
         }
         drawing_setting.enableDynamicBatching = m_param.DynamicBatcher;
         drawing_setting.enableInstancing = m_param.GPUInstancing;
+        drawing_setting.perObjectData = PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume;
     }
     void DrawOpaque(ScriptableRenderContext context, SortingSettings sortingSettings, CullingResults cull_res)
     {
@@ -126,6 +128,15 @@ public class CusRP : RenderPipeline
         context.SetupCameraProperties(cam);
 
         cmd.ClearRenderTarget(true, true, m_param.ClearColor);
+        //设置多变体
+        if(m_param.LightMapOn)
+        {
+            Shader.EnableKeyword("LIGHTMAP_ON");
+        } 
+        else
+        {
+            Shader.DisableKeyword("LIGHTMAP_ON");
+        }
         context.ExecuteCommandBuffer(cmd);
         cmd.Clear();
     }

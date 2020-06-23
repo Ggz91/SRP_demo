@@ -12,20 +12,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a2b3a9f343b86a34e8b51e3079a198f6, type: 3}
   m_Name: CusRP
   m_EditorClassIdentifier: 
-  ClearColor: {r: 1, g: 1, b: 1, a: 0}
-  DynamicBatcher: 0
-  SRPBatcher: 1
-  GPUInstancing: 0
-  CastShadows: 1
-  ShadowAtlasSize: 4096
-  ShadowMaxDistance: 100
-  UsCaseCasde: 1
-  CascadeRadio:
-  - 0.25
-  - 0.5
-  - 0.75
-  ShadowFadeFactor: 0.1
-  CascadeFadeFactor: 0.1
-  ShadowFilterMode: 0
-  CascadeBlendFactor: 0.831
-  ShadowCascadeBlendMode: 0
+  GeneralSettings:
+    ClearColor: {r: 1, g: 1, b: 1, a: 1}
+  BatcherSettings:
+    DynamicBatcher: 0
+    SRPBatcher: 1
+    GPUInstancing: 1
+  ShadowSettings:
+    CastShadows: 1
+    ShadowAtlasSize: 4096
+    ShadowMaxDistance: 1000
+    UseCaseCasde: 0
+    CascadeRadio:
+    - 0.1
+    - 0.3
+    - 0.4
+    - 1
+    ShadowFadeFactor: 0.0001
+    CascadeFadeFactor: 0.0001
+    ShadowFilterMode: 0
+    CascadeBlendFactor: 0.168
+    ShadowCascadeBlendMode: 1
+  BakedLightSettings:
+    LightMapOn: 1

@@ -8,24 +8,69 @@ using UnityEditor;
 public class CusRPAsset : RenderPipelineAsset
 {
     #region public var
-    public Color ClearColor;
-    public bool DynamicBatcher;
-    public bool SRPBatcher;
-    public bool GPUInstancing;
+    [System.Serializable]
+    public struct SGeneralSettings
+    {
+        [SerializeField]
+        public Color ClearColor;
+    };
+
+    [System.Serializable]
+    public struct SBatcherSettings
+    {
+        [SerializeField]
+        public bool DynamicBatcher;
+        [SerializeField]
+        public bool SRPBatcher;
+        [SerializeField]
+        public bool GPUInstancing;
+    };
     
-    public bool CastShadows;
-    public int ShadowAtlasSize = 512;
-    [Min(0.001f)]
-    public float ShadowMaxDistance = 20;
+    [System.Serializable]
+    public struct SShadowSettings
+    {
+        [SerializeField]
+        public bool CastShadows;
+        [SerializeField]
+        public int ShadowAtlasSize;
+        [Min(0.001f)]
+        [SerializeField]
+        public float ShadowMaxDistance;
 
-    public bool UsCaseCasde = false;
-    const int CascadeCount = 4;
+        [SerializeField]
+        public bool UseCaseCasde;
+        [SerializeField]
+        const int CascadeCount = 4;
 
-    public float[] CascadeRadio = {0.2f, 0.3f, 0.4f};
-    [Min(0.0001f)]
-    public float ShadowFadeFactor = 0.1f;
-    [Min(0.0001f)]
-    public float CascadeFadeFactor = 0.1f;
+        [SerializeField]
+        public float[] CascadeRadio ;
+        [Min(0.0001f)]
+        [SerializeField]
+        public float ShadowFadeFactor;
+        [Min(0.0001f)]
+        [SerializeField]
+        public float CascadeFadeFactor;
+        [SerializeField]
+        public FilterMode ShadowFilterMode;
+        [Range(0f, 1f)]
+        [SerializeField]
+        public float CascadeBlendFactor;
+        [SerializeField]
+        public CascadeBlendMode ShadowCascadeBlendMode;
+    }
+    
+    [System.Serializable]
+    public struct SBakedLightSettings
+    {
+        [SerializeField]
+        public bool LightMapOn;
+    }
+    public SGeneralSettings  GeneralSettings;
+    public SBatcherSettings BatcherSettings;
+    
+    public SShadowSettings ShadowSettings;
+    public SBakedLightSettings BakedLightSettings;
+
     public enum FilterMode
     {
         NONE = 0,
@@ -33,15 +78,11 @@ public class CusRPAsset : RenderPipelineAsset
         PCF5x5,
         PCF7x7,
     }
-    public FilterMode ShadowFilterMode = FilterMode.NONE;
-    [Range(0f, 1f)]
-    public float CascadeBlendFactor = 0.7f;
     public enum CascadeBlendMode
     {
         NONE = 0,
         Dither,
     }
-    public CascadeBlendMode ShadowCascadeBlendMode = CascadeBlendMode.NONE;
     #endregion
     
     #region  private var
@@ -61,20 +102,21 @@ public class CusRPAsset : RenderPipelineAsset
     void FillRPParam(ref CusRP.CusRPParam param)
     {
         CheckParam();
-        param.ClearColor = ClearColor;
-        param.DynamicBatcher = DynamicBatcher;
-        param.SRPBatcher = SRPBatcher;
-        param.GPUInstancing = GPUInstancing;
-        param.CastShadows = CastShadows;
-        param.ShadowAltasSize = ShadowAtlasSize;
-        param.ShadowMaxDistance = ShadowMaxDistance;
-        param.CascadeRadio = CascadeRadio;
-        param.UseCascade = UsCaseCasde;
-        param.ShadowFadeFactor = ShadowFadeFactor;
-        param.CascadeFadeFactor = CascadeFadeFactor;
-        param.FilterMode = ShadowFilterMode;
-        param.CascadeBlendFactor = CascadeBlendFactor;
-        param.CascadeBlendMode = ShadowCascadeBlendMode;
+        param.ClearColor = GeneralSettings.ClearColor;
+        param.DynamicBatcher = BatcherSettings.DynamicBatcher;
+        param.SRPBatcher = BatcherSettings.SRPBatcher;
+        param.GPUInstancing = BatcherSettings.GPUInstancing;
+        param.CastShadows = ShadowSettings.CastShadows;
+        param.ShadowAltasSize = ShadowSettings.ShadowAtlasSize;
+        param.ShadowMaxDistance = ShadowSettings.ShadowMaxDistance;
+        param.CascadeRadio = ShadowSettings.CascadeRadio;
+        param.UseCascade = ShadowSettings.UseCaseCasde;
+        param.ShadowFadeFactor = ShadowSettings.ShadowFadeFactor;
+        param.CascadeFadeFactor = ShadowSettings.CascadeFadeFactor;
+        param.FilterMode = ShadowSettings.ShadowFilterMode;
+        param.CascadeBlendFactor = ShadowSettings.CascadeBlendFactor;
+        param.CascadeBlendMode = ShadowSettings.ShadowCascadeBlendMode;
+        param.LightMapOn = BakedLightSettings.LightMapOn;
     }
     void CheckParam()
     {
@@ -85,11 +127,46 @@ public class CusRPAsset : RenderPipelineAsset
             Debug.LogError(res + " is wrong input ");
         }
     }
+    void InitGeneralSettings()
+    {
+        GeneralSettings.ClearColor = new Color(1, 1, 1, 1);
+    }
+    void InitBatcherSettings()
+    {
+        BatcherSettings.DynamicBatcher = false;
+        BatcherSettings.SRPBatcher = true;
+        BatcherSettings.GPUInstancing = true;
+    }
+    void InitShadowSettings()
+    {
+        ShadowSettings.CastShadows = true;
+        ShadowSettings.ShadowAtlasSize = 4096;
+        ShadowSettings.ShadowMaxDistance = 20;
+        ShadowSettings.UseCaseCasde = true;
+        ShadowSettings.CascadeRadio= new float[] {0.2f, 0.3f, 0.4f};
+        ShadowSettings.ShadowFadeFactor = 0.1f;
+        ShadowSettings.CascadeFadeFactor = 0.1f;
+        ShadowSettings.ShadowFilterMode = FilterMode.NONE;
+        ShadowSettings.CascadeBlendFactor = 0.7f;
+        ShadowSettings.ShadowCascadeBlendMode = CascadeBlendMode.NONE;
+    }
+    void InitBakedLightSettigns()
+    {
+        BakedLightSettings.LightMapOn = true;
+    }
+    void InitDefaultSettings()
+    {
+        InitGeneralSettings();
+        InitBatcherSettings();
+        InitShadowSettings();
+        InitBakedLightSettigns();
+    }
     #endregion
 
     #region inherited
     protected override RenderPipeline CreatePipeline()
     {
+        InitDefaultSettings();
         if(null == rp || rp.disposed)
         {
             rp = new CusRP();
