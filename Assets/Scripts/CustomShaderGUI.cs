@@ -18,8 +18,9 @@ public class CustomShaderGUI : ShaderGUI
     void CopyLightMappingProperties (MaterialProperty[] properties) 
     {
 		MaterialProperty mainTex = FindProperty("_MainTex", properties, false);
-		MaterialProperty baseMap = FindProperty("_BaseMap", properties, false);
-		if (mainTex != null && baseMap != null) {
+		MaterialProperty baseMap = FindProperty("_Tex", properties, false);
+		if (mainTex != null && baseMap != null) 
+        {
 			mainTex.textureValue = baseMap.textureValue;
 			mainTex.textureScaleAndOffset = baseMap.textureScaleAndOffset;
 		}

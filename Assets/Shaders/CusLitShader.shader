@@ -186,7 +186,7 @@ Shader "CusRP/CusLitShader"
 
 			ENDHLSL
 		}
-        /*Pass
+        Pass
         {
             Tags {"LightMode" = "Meta"}
 
@@ -245,7 +245,7 @@ Shader "CusRP/CusLitShader"
                     input.pos.xy = input.uv1 * unity_LightmapST.xy + unity_LightmapST.zw;
                 }
                 input.pos.z = input.pos.z > 0.0f ? FLT_MIN : 0.0f;
-                output.pos_cs = TransformWorldToHClip(TransformObjectToWorld(input.pos));
+                output.pos_cs = TransformWorldToHClip(input.pos);
                 output.uv = input.uv * _Tex_ST.xy + _Tex_ST.zw;
                 return output;
             }
@@ -290,7 +290,7 @@ Shader "CusRP/CusLitShader"
                 return meta;
             }
             ENDHLSL
-        }*/
+        }
     }
     CustomEditor "CustomShaderGUI"
 }

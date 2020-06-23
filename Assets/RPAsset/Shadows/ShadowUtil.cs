@@ -234,7 +234,7 @@ public class ShadowUtil
         for(int i = 0; i<m_cull_res.visibleLights.Length; ++i)
         {
             var light = m_cull_res.visibleLights[i];
-            if("PreRenderLight" == light.light.name)
+            if("PreRenderLight" == light.light.name || light.light.shadows == LightShadows.None)
             {
                 continue;
             }

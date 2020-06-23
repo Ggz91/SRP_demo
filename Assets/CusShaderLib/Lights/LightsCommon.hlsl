@@ -73,7 +73,7 @@ float4 GetSingleLightsColor(int index, Surface surface)
     GI gi = GetGI(surface);
     float4 dir = -_LightsDirections[index];
     float4 color = _LightsColors[index];
-    color.rgb = gi.diffuse * CalDiffuse(surface).rgb;
+    color.rgb += gi.diffuse * CalDiffuse(surface).rgb;
     
     float4 light_color = saturate(dot(surface.normal_ws, dir.xyz))*color;
     return light_color * GetBRDF(dir, color, surface);
