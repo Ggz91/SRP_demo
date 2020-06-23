@@ -21,17 +21,16 @@ MonoBehaviour:
   ShadowSettings:
     CastShadows: 1
     ShadowAtlasSize: 4096
-    ShadowMaxDistance: 1000
-    UseCaseCasde: 0
+    ShadowMaxDistance: 100
+    UseCaseCasde: 1
     CascadeRadio:
-    - 0.1
+    - 0.2
     - 0.3
     - 0.4
-    - 1
-    ShadowFadeFactor: 0.0001
-    CascadeFadeFactor: 0.0001
-    ShadowFilterMode: 0
-    CascadeBlendFactor: 0.168
-    ShadowCascadeBlendMode: 1
+    ShadowFadeFactor: 0.1
+    CascadeFadeFactor: 0.1
+    ShadowFilterMode: 3
+    CascadeBlendFactor: 0.7
+    ShadowCascadeBlendMode: 0
   BakedLightSettings:
     LightMapOn: 1
