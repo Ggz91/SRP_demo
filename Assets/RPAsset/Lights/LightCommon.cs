@@ -11,7 +11,10 @@ public class LightUtil
     int m_lights_colors_id = 0;
     List<Vector4> m_list_dirs ;
     List<Vector4> m_list_colors ;
-    
+    public struct LightSetUpRes
+    {
+        public bool UseShadowMask;
+    }   
     #endregion
     public LightUtil()
     {
@@ -21,8 +24,9 @@ public class LightUtil
         m_list_colors = new List<Vector4>(new Vector4[m_max_light_count]);
         m_list_dirs = new List<Vector4>(new Vector4[m_max_light_count]);
     }
-    public void Setup(Unity.Collections.NativeArray<VisibleLight> lights)
+    public void Setup(Unity.Collections.NativeArray<VisibleLight> lights, out LightSetUpRes res)
     {
+        res.UseShadowMask = false;
         if(lights.Length<=0)
         {
             return;
@@ -35,6 +39,11 @@ public class LightUtil
             if(LightType.Directional != light.lightType)
             {
                 continue;
+            }
+            if(light.light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed
+            && light.light.bakingOutput.mixedLightingMode == MixedLightingMode.Shadowmask)
+            {
+                res.UseShadowMask = true;
             }
             m_list_colors[i] = light.finalColor;
             m_list_dirs[i] = light.light.transform.forward;

@@ -16,8 +16,8 @@ struct Surface
     #endif
 };
 
-#include "../CusShaderLib/BakedLights/GI.hlsl"
 #include "../CusShaderLib/Shadows/ShadowCommon.hlsl"
+#include "../CusShaderLib/BakedLights/GI.hlsl"
 
 #define MAX_LIGHTS_NUM 4
 #define MIN_REFLECTIVITY 0.04
@@ -74,7 +74,7 @@ float4 GetSingleLightsColor(int index, Surface surface)
     float4 dir = -_LightsDirections[index];
     float4 color = _LightsColors[index];
     color.rgb += gi.diffuse * CalDiffuse(surface).rgb;
-    
+    return float4(gi.shadow_mask.shadows.rgb, 1);
     float4 light_color = saturate(dot(surface.normal_ws, dir.xyz))*color;
     return light_color * GetBRDF(dir, color, surface);
 }
@@ -90,13 +90,15 @@ float4 GetLightsColor(Surface surface)
     shadow.pos_ws = surface.pos_ws;
     shadow.normal_ws = surface.normal_ws;
     shadow.index = 0;
+    shadow.shadow_mask.distance = false;
+    shadow.shadow_mask.shadows = 1.0;
     #if defined(_CASCADE_DITHER)
     shadow.dither = InterleavedGradientNoise(surface.pos.xy, 0);
     #endif
     for(int i=0; i<_LightsCount; ++i)
     {
         shadow.light_index = i;
-        color +=  GetSingleLightsColor(i, surface) * GetSingleShadowAutten(shadow);
+        color +=  GetSingleLightsColor(i, surface);// * GetSingleShadowAutten(shadow);
     }
 
    

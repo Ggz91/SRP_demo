@@ -34,6 +34,12 @@ CBUFFER_START(CusShadows)
 	float _ShadowCascadeBlend;
 CBUFFER_END
 
+struct ShadowMask
+{
+	bool distance;
+	float4 shadows;
+};
+
 struct ShadowParam
 {
 	float3 pos_ws;
@@ -47,6 +53,7 @@ struct ShadowParam
 	#if defined(_CASCADE_DITHER)
 		float dither;
 	#endif
+	ShadowMask shadow_mask;
 };
 float GetShadowStrength(ShadowParam param)
 {

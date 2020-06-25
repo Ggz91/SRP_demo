@@ -44,6 +44,7 @@ Shader "CusRP/CusLitShader"
             #pragma multi_compile _ _PCF3x3 _PCF5x5 _PCF7x7
             #pragma shader_feature _CASCADE_DITHER
             #pragma shader_feature _RECEIVE_SHADOW
+            #pragma multi_compile _ _SHADOW_MASK_DISTANCE
             UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
                 UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Clip)

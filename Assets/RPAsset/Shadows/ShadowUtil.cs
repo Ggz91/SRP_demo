@@ -52,6 +52,13 @@ public class ShadowUtil
     Vector4[] m_shadow_cascade_data = new Vector4[m_max_lights_count * m_max_lights_count];
     int m_shadow_altas_size_id;
     int m_shader_cascade_blend_id;
+
+    static string[] m_shadow_mask_keywords =
+    {
+        "_SHADOW_MASK_DISTANCE"
+    };
+    public bool UseShadowMask;
+
     #endregion
     
     #region method
@@ -299,6 +306,7 @@ public class ShadowUtil
        {
            DrawShadowWithoutCascade();
        }
+       SetShaderKeyword(m_shadow_mask_keywords[0], UseShadowMask);
     }
 
     void SetPreRenderDrawSetting()
