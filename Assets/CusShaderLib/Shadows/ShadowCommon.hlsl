@@ -67,12 +67,31 @@ float GetShadowStrength(ShadowParam param)
 	}
 	return strength;
 }
+float GetBakedShadow(ShadowMask mask)
+{
+	float shadow = 1.0f;
+	if(mask.distance)
+	{
+		shadow = mask.shadows.r;
+	}
+	return shadow;
+}
+float MixBakeAndRealtimeShadows(ShadowParam global, float shadow, float strength)
+{
+	float baked = GetBakedShadow(global.shadow_mask);
+	if(global.shadow_mask.distance)
+	{
+		shadow = baked;
+	}
+	return lerp(1.0, shadow, strength);
+}
 float GetSingleShadowAuttenWithoutCascade(ShadowParam param)
 {
 	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.light_index];
 	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
 	float strength = GetShadowStrength(param);
-	return lerp(1.0f, SAMPLE_TEXTURE2D_SHADOW(_ShadowMapAltas, SHADOW_SAMPLER, pos_ls), strength);
+	float shadow = lerp(1.0f, SAMPLE_TEXTURE2D_SHADOW(_ShadowMapAltas, SHADOW_SAMPLER, pos_ls), strength);
+	return MixBakeAndRealtimeShadows(param, shadow, strength);
 }
 
 float SquareDistance(float3 orig, float3 dst)
@@ -137,6 +156,8 @@ float GetSingleCacasdeAutten(float4 pos_ls)
 	#endif
 	return shadow;
 }
+
+
 float GetSingleShadowAuttenWithCascade(ShadowParam param)
 {
 	if(_ShadowStrength[param.light_index] <= 0)
@@ -168,7 +189,7 @@ float GetSingleShadowAuttenWithCascade(ShadowParam param)
 		}
 	#endif
 	
-	return lerp(1.0f, shadow, strength);
+	return MixBakeAndRealtimeShadows(param, shadow, strength);
 }
 
 float GetSingleShadowAutten(ShadowParam param)
