@@ -82,7 +82,7 @@ float4 GetLightsColor(Surface surface)
 {
     float4 color = 0;
     //加入阴影的影响
-    ShadowParam shadow;
+    ShadowParam shadow = (ShadowParam)0;
     //加入normal bias
     shadow.is_mul_lights = _LightsCount > 1;
 	shadow.depth = -TransformWorldToView(surface.pos_ws.xyz).z;
@@ -93,7 +93,6 @@ float4 GetLightsColor(Surface surface)
     //加入lightMap的影响
     GI gi = GetGI(surface);
     shadow.shadow_mask = gi.shadow_mask;
-
     #if defined(_CASCADE_DITHER)
     shadow.dither = InterleavedGradientNoise(surface.pos.xy, 0);
     #endif

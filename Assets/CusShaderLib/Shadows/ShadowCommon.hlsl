@@ -57,7 +57,7 @@ struct ShadowParam
 };
 float GetShadowStrength(ShadowParam param)
 {
-	float strength = _ShadowStrength[param.light_index];
+	float strength = 1;//_ShadowStrength[param.light_index];
 	
 	float fade = (1 - param.depth * _ShadowFadeParam.x) * _ShadowFadeParam.y;
 	//最后边缘的阴影表现
@@ -65,7 +65,7 @@ float GetShadowStrength(ShadowParam param)
 	{
 		fade *= (1 - param.depth * param.depth * _ShadowCascadeData[param.index].x * _ShadowCascadeData[param.index].x) * _ShadowFadeParam.z;
 	}
-	return strength;
+	return strength * fade;
 }
 float GetBakedShadow(ShadowMask mask)
 {
@@ -81,9 +81,10 @@ float MixBakeAndRealtimeShadows(ShadowParam global, float shadow, float strength
 	float baked = GetBakedShadow(global.shadow_mask);
 	if(global.shadow_mask.distance)
 	{
-		shadow = baked;
+		shadow = lerp(baked, shadow, _ShadowStrength[global.light_index]);
+		return lerp(1.0, shadow, strength);
 	}
-	return lerp(1.0, shadow, strength);
+	return lerp(1.0, shadow, strength * _ShadowStrength[global.light_index]);
 }
 float GetSingleShadowAuttenWithoutCascade(ShadowParam param)
 {

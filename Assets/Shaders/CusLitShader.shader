@@ -111,6 +111,9 @@ Shader "CusRP/CusLitShader"
                 surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
                 surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic);
                 surface.pos = indata.pos.xyz;
+                #ifdef LIGHTMAP_ON 
+                surface.lightmap_uv = indata.uv.xy * unity_LightmapST.xy + unity_LightmapST.zw;
+                #endif
                 COPY_GI_DATA(indata, surface)
                 color.xyz = GetLightsColor(surface).xyz;
                 //加入自发光
@@ -239,7 +242,6 @@ Shader "CusRP/CusLitShader"
                 if(unity_MetaVertexControl.y)
                 {
                     input.pos.xy = input.uv2 * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
-
                 }
                 else if (unity_MetaVertexControl.x)
                 {
@@ -288,6 +290,7 @@ Shader "CusRP/CusLitShader"
 
                     meta = float4(emission.xyz, 1.0);
                 }
+                meta = float4(1, 1, 1, 1);
                 return meta;
             }
             ENDHLSL
