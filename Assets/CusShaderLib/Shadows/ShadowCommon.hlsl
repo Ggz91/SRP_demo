@@ -95,14 +95,14 @@ float MixBakeAndRealtimeShadows(ShadowParam global, float shadow, float strength
 	float baked = GetBakedShadow(global.shadow_mask, global.shadow_mask_channel);
 	if(global.shadow_mask.always)
 	{
-		shadow = lerp(1.0, shadow, _ShadowStrength[global.light_index]);
+		shadow = lerp(1.0, shadow, strength);
 		shadow = min(baked, shadow);
-		return lerp(1.0, shadow, strength);
+		return lerp(1.0, shadow, _ShadowStrength[global.light_index]);
 	}
 	if(global.shadow_mask.distance)
 	{
-		shadow = lerp(baked, shadow, _ShadowStrength[global.light_index]);
-		return lerp(1.0, shadow, strength);
+		shadow = lerp(baked, shadow, strength);
+		return lerp(1.0, shadow, _ShadowStrength[global.light_index]);
 	}
 	return lerp(1.0, shadow, strength * _ShadowStrength[global.light_index]);
 }

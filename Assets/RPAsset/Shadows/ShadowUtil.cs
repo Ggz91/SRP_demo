@@ -338,6 +338,8 @@ public class ShadowUtil
        }
        int index = QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 0 : 1;
        SetShaderKeyword(m_shadow_mask_keywords[index], UseShadowMask);
+       index = (0 == index) ? 1 : 0;
+       SetShaderKeyword( m_shadow_mask_keywords[index], !UseShadowMask);
     }
 
     void SetPreRenderDrawSetting()

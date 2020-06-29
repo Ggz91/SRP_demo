@@ -118,7 +118,7 @@ Shader "CusRP/CusLitShader"
                 color.xyz = GetLightsColor(surface).xyz;
                 //加入自发光
                 float4 emisson = tex2D(_EmissionMap, indata.uv.xy) * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _EmissionColor);
-                color.xyz += emisson.xyz;
+                //color.xyz += emisson.xyz;
                 return color;
             }
             ENDHLSL

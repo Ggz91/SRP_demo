@@ -93,9 +93,11 @@ float4 GetLightsColor(Surface surface)
     //加入lightMap的影响
     GI gi = GetGI(surface);
     shadow.shadow_mask = gi.shadow_mask;
+    
     #if defined(_CASCADE_DITHER)
     shadow.dither = InterleavedGradientNoise(surface.pos.xy, 0);
     #endif
+
     for(int i=0; i<_LightsCount; ++i)
     {
         shadow.light_index = i;
