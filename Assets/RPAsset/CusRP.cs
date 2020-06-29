@@ -202,9 +202,7 @@ public class CusRP : RenderPipeline
     private LightUtil m_light_util = new LightUtil();
     void SetupLights(Unity.Collections.NativeArray<VisibleLight> lights)
     {
-        LightUtil.LightSetUpRes res;
-        m_light_util.Setup(lights, out res);
-        m_shadow_util.UseShadowMask = res.UseShadowMask;
+        m_light_util.Setup(lights);
     }
     #endregion
 

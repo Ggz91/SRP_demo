@@ -57,7 +57,7 @@ public class ShadowUtil
     {
         "_SHADOW_MASK_DISTANCE"
     };
-    public bool UseShadowMask;
+    bool UseShadowMask;
 
     #endregion
     
@@ -232,6 +232,22 @@ public class ShadowUtil
         m_shadow_normal_bias[light_index] = m_cull_res.visibleLights[light_index].light.shadowNormalBias;
         //记录strength
         m_shadow_strength[light_index] = m_cull_res.visibleLights[light_index].light.shadowStrength;
+        Light light = m_cull_res.visibleLights[light_index].light;
+        if(light.shadows != LightShadows.None
+        && light.shadowStrength > 0f)
+        {
+            if(light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed
+            && light.bakingOutput.mixedLightingMode == MixedLightingMode.Shadowmask
+            && !UseShadowMask)
+            {
+                UseShadowMask = true;
+            }
+            if(!m_cull_res.GetShadowCasterBounds(light_index, out Bounds b))
+            {
+                m_shadow_strength[light_index] *= -1;
+            }
+        }
+       
     }
     void DrawShadowWithCascade()
     {
@@ -255,6 +271,7 @@ public class ShadowUtil
                 float cullingFactor =Mathf.Max(0f, 0.8f - m_setting.CascadeFadeFactor);
                 splitData.shadowCascadeBlendCullingFactor = cullingFactor;
                 settings.splitData = splitData;
+                AddLightShadowParam(i, m_cull_res.visibleLights.Length, j,viewMatrix, projectionMatrix, ref splitData);
                 m_cmd_buffer.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
                 m_cmd_buffer.SetViewport(GetShadowMapRect(i, j, m_cull_res.visibleLights.Length, cascade_tile_size));
                 m_cmd_buffer.SetGlobalDepthBias(0f, m_cull_res.visibleLights[i].light.shadowBias);
@@ -264,8 +281,6 @@ public class ShadowUtil
                 m_cmd_buffer.SetGlobalDepthBias(0f, 0f);
                 ExecuteBuffer();
 
-                //变换矩阵存着给后续的采样做准备
-                AddLightShadowParam(i, m_cull_res.visibleLights.Length, j,viewMatrix, projectionMatrix, ref splitData);
             }
         }
     }
@@ -285,6 +300,7 @@ public class ShadowUtil
 			out Matrix4x4 viewMatrix, out Matrix4x4 projectionMatrix,
 			out ShadowSplitData splitData);
             settings.splitData = splitData;
+            AddLightShadowParam(i, m_cull_res.visibleLights.Length, 0,viewMatrix, projectionMatrix, ref splitData);
             m_cmd_buffer.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
             m_cmd_buffer.SetViewport(GetShadowMapRect(i, 0, m_cull_res.visibleLights.Length, TileSize));
             m_cmd_buffer.SetGlobalDepthBias(0f, m_cull_res.visibleLights[i].light.shadowBias);
@@ -292,8 +308,6 @@ public class ShadowUtil
             m_context.DrawShadows(ref settings);
             m_cmd_buffer.SetGlobalDepthBias(0f, 0f);
             ExecuteBuffer();
-            //变换矩阵存着给后续的采样做准备
-            AddLightShadowParam(i, m_cull_res.visibleLights.Length, 0,viewMatrix, projectionMatrix, ref splitData);
         }
     }
     void DrawShowsImp()

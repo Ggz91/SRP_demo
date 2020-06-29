@@ -76,9 +76,17 @@ float GetBakedShadow(ShadowMask mask)
 	}
 	return shadow;
 }
+float GetBakedShadow(ShadowMask mask, float strength)
+{
+	if(mask.distance)
+	{
+		return lerp(1.0, GetBakedShadow(mask), strength);
+	}
+	return 1.0f;
+}
 float MixBakeAndRealtimeShadows(ShadowParam global, float shadow, float strength)
 {
-	float baked = GetBakedShadow(global.shadow_mask);
+	float baked = GetBakedShadow(global.shadow_mask, abs(_ShadowStrength[global.light_index]));
 	if(global.shadow_mask.distance)
 	{
 		shadow = lerp(baked, shadow, _ShadowStrength[global.light_index]);
@@ -161,9 +169,11 @@ float GetSingleCacasdeAutten(float4 pos_ls)
 
 float GetSingleShadowAuttenWithCascade(ShadowParam param)
 {
-	if(_ShadowStrength[param.light_index] <= 0)
+	float strength = GetShadowStrength(param);
+	param.strength = strength;
+	if(_ShadowStrength[param.light_index] * param.strength <= 0)
 	{
-		return 1.0f;
+		return GetBakedShadow(param.shadow_mask, _ShadowStrength[param.light_index]);
 	}
 	//判断是否在剔除距离内
 	if(param.depth > _ShadowMaxDistance)
@@ -175,7 +185,6 @@ float GetSingleShadowAuttenWithCascade(ShadowParam param)
 	param.cascade_index = indics.x;
 	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.index];
 	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
-	float strength = GetShadowStrength(param);
 	float shadow = GetSingleCacasdeAutten(pos_ls);
 	#if !defined(_CASCADE_DITHER)
 		if(_ShadowCascadeBlend<0.999f && param.cascade_index != (MAX_CASCADE_COUNT-1))
