@@ -60,6 +60,9 @@ public class ShadowUtil
     };
     bool UseShadowMask;
 
+    int m_shadow_mask_channel_id;
+    float[] m_shadow_mask_channel = new float[m_max_lights_count];
+
     #endregion
     
     #region method
@@ -112,6 +115,7 @@ public class ShadowUtil
         m_shadow_cascade_id = Shader.PropertyToID("_ShadowCascadeData");
         m_shadow_altas_size_id = Shader.PropertyToID("_ShadowAltasSize");
         m_shader_cascade_blend_id = Shader.PropertyToID("_ShadowCascadeBlend");
+        m_shadow_mask_channel_id = Shader.PropertyToID("_ShadowMaskChannel");
         //给属性赋值
         Shader.SetGlobalInt(m_shadow_light_count_id, m_cull_res.visibleLights.Length);
         Shader.SetGlobalFloat(m_shadow_max_distance_id, m_setting.MaxDistance);
@@ -231,22 +235,24 @@ public class ShadowUtil
 
         //记录normalbias
         m_shadow_normal_bias[light_index] = m_cull_res.visibleLights[light_index].light.shadowNormalBias;
-        //记录strength
+        //记录strength和shadowmask channel
+        int shadowmask_channel = -1;
         m_shadow_strength[light_index] = m_cull_res.visibleLights[light_index].light.shadowStrength;
         Light light = m_cull_res.visibleLights[light_index].light;
         if(light.shadows != LightShadows.None
         && light.shadowStrength > 0f)
         {
             if(light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed
-            && light.bakingOutput.mixedLightingMode == MixedLightingMode.Shadowmask
-            && !UseShadowMask)
+            && light.bakingOutput.mixedLightingMode == MixedLightingMode.Shadowmask)
             {
-                UseShadowMask = true;
+                UseShadowMask |= true;
+                shadowmask_channel = light.bakingOutput.occlusionMaskChannel;
             }
             if(!m_cull_res.GetShadowCasterBounds(light_index, out Bounds b))
             {
                 m_shadow_strength[light_index] *= -1;
             }
+            m_shadow_mask_channel[light_index] = shadowmask_channel;
         }
        
     }
@@ -351,6 +357,7 @@ public class ShadowUtil
         Shader.SetGlobalFloatArray(m_shadow_normal_bias_id, m_shadow_normal_bias);
         Shader.SetGlobalFloatArray(m_shadow_strength_id, m_shadow_strength);
         Shader.SetGlobalVectorArray(m_shadow_cascade_id, m_shadow_cascade_data);
+        Shader.SetGlobalFloatArray(m_shadow_mask_channel_id, m_shadow_mask_channel);
         //设置Cascade Cull Sphere相关信息
         if(m_setting.UseCascade)
         {

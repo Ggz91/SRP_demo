@@ -32,6 +32,7 @@ CBUFFER_START(CusShadows)
 	float4 _ShadowCascadeData[MAX_SHADOW_LIGHTS_COUNT * MAX_CASCADE_COUNT];
 	float4 _ShadowAltasSize;
 	float _ShadowCascadeBlend;
+	float _ShadowMaskChannel[MAX_SHADOW_LIGHTS_COUNT];
 CBUFFER_END
 
 struct ShadowMask
@@ -55,6 +56,7 @@ struct ShadowParam
 		float dither;
 	#endif
 	ShadowMask shadow_mask;
+	int shadow_mask_channel;
 };
 float GetShadowStrength(ShadowParam param)
 {
@@ -68,26 +70,29 @@ float GetShadowStrength(ShadowParam param)
 	}
 	return strength * fade;
 }
-float GetBakedShadow(ShadowMask mask)
+float GetBakedShadow(ShadowMask mask, int channel)
 {
 	float shadow = 1.0f;
 	if(mask.distance || mask.always)
 	{
-		shadow = mask.shadows.r;
+		if(channel >= 0)
+		{
+			shadow = mask.shadows[channel];
+		}
 	}
 	return shadow;
 }
-float GetBakedShadow(ShadowMask mask, float strength)
+float GetBakedShadow(ShadowMask mask, float strength, int channel)
 {
 	if(mask.distance || mask.always)
 	{
-		return lerp(1.0, GetBakedShadow(mask), strength);
+		return lerp(1.0, GetBakedShadow(mask, channel), strength);
 	}
 	return 1.0f;
 }
 float MixBakeAndRealtimeShadows(ShadowParam global, float shadow, float strength)
 {
-	float baked = GetBakedShadow(global.shadow_mask);
+	float baked = GetBakedShadow(global.shadow_mask, global.shadow_mask_channel);
 	if(global.shadow_mask.always)
 	{
 		shadow = lerp(1.0, shadow, _ShadowStrength[global.light_index]);
@@ -107,7 +112,7 @@ float GetSingleShadowAuttenWithoutCascade(ShadowParam param)
 	param.strength = strength;
 	if(_ShadowStrength[param.light_index] * param.strength <= 0)
 	{
-		return GetBakedShadow(param.shadow_mask, abs(_ShadowStrength[param.light_index]));
+		return GetBakedShadow(param.shadow_mask, abs(_ShadowStrength[param.light_index]), param.shadow_mask_channel);
 	}
 	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.light_index];
 	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
@@ -185,7 +190,7 @@ float GetSingleShadowAuttenWithCascade(ShadowParam param)
 	param.strength = strength;
 	if(_ShadowStrength[param.light_index] * param.strength <= 0)
 	{
-		return GetBakedShadow(param.shadow_mask, abs(_ShadowStrength[param.light_index]));
+		return GetBakedShadow(param.shadow_mask, abs(_ShadowStrength[param.light_index]), param.shadow_mask_channel);
 	}
 	//判断是否在剔除距离内
 	if(param.depth > _ShadowMaxDistance)

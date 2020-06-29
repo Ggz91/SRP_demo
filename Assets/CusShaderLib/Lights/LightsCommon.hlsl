@@ -99,6 +99,7 @@ float4 GetLightsColor(Surface surface)
     for(int i=0; i<_LightsCount; ++i)
     {
         shadow.light_index = i;
+        shadow.shadow_mask_channel = _ShadowMaskChannel[i];
         color +=  GetSingleLightsColor(i, surface, gi) * GetSingleShadowAutten(shadow);
     }
 
