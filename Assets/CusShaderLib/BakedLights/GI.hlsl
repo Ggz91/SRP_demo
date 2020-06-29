@@ -113,7 +113,11 @@ GI GetGI(Surface surface)
     gi.diffuse = SampleLightMap(GI_FRAGMENT_DATA(surface), surface.normal_ws) + SampleLightProbes(surface);
     gi.shadow_mask.distance = false;
     gi.shadow_mask.shadows = 1.0;
-    #ifdef _SHADOW_MASK_DISTANCE
+    gi.shadow_mask.always = false;
+    #if defined(_SHADOW_MASK_ALWAYS)
+        gi.shadow_mask.always = true;
+        gi.shadow_mask.shadows = SampleBakedShadows(surface);
+    #elif defined(_SHADOW_MASK_DISTANCE)
         gi.shadow_mask.distance = true;
         gi.shadow_mask.shadows = SampleBakedShadows(surface);
     #endif

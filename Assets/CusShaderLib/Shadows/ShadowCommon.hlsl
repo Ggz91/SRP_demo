@@ -36,6 +36,7 @@ CBUFFER_END
 
 struct ShadowMask
 {
+	bool always;
 	bool distance;
 	float4 shadows;
 };
@@ -70,7 +71,7 @@ float GetShadowStrength(ShadowParam param)
 float GetBakedShadow(ShadowMask mask)
 {
 	float shadow = 1.0f;
-	if(mask.distance)
+	if(mask.distance || mask.always)
 	{
 		shadow = mask.shadows.r;
 	}
@@ -78,7 +79,7 @@ float GetBakedShadow(ShadowMask mask)
 }
 float GetBakedShadow(ShadowMask mask, float strength)
 {
-	if(mask.distance)
+	if(mask.distance || mask.always)
 	{
 		return lerp(1.0, GetBakedShadow(mask), strength);
 	}
@@ -86,7 +87,13 @@ float GetBakedShadow(ShadowMask mask, float strength)
 }
 float MixBakeAndRealtimeShadows(ShadowParam global, float shadow, float strength)
 {
-	float baked = GetBakedShadow(global.shadow_mask, abs(_ShadowStrength[global.light_index]));
+	float baked = GetBakedShadow(global.shadow_mask);
+	if(global.shadow_mask.always)
+	{
+		shadow = lerp(1.0, shadow, _ShadowStrength[global.light_index]);
+		shadow = min(baked, shadow);
+		return lerp(1.0, shadow, strength);
+	}
 	if(global.shadow_mask.distance)
 	{
 		shadow = lerp(baked, shadow, _ShadowStrength[global.light_index]);
@@ -96,9 +103,14 @@ float MixBakeAndRealtimeShadows(ShadowParam global, float shadow, float strength
 }
 float GetSingleShadowAuttenWithoutCascade(ShadowParam param)
 {
+	float strength = GetShadowStrength(param);
+	param.strength = strength;
+	if(_ShadowStrength[param.light_index] * param.strength <= 0)
+	{
+		return GetBakedShadow(param.shadow_mask, abs(_ShadowStrength[param.light_index]));
+	}
 	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.light_index];
 	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
-	float strength = GetShadowStrength(param);
 	float shadow = lerp(1.0f, SAMPLE_TEXTURE2D_SHADOW(_ShadowMapAltas, SHADOW_SAMPLER, pos_ls), strength);
 	return MixBakeAndRealtimeShadows(param, shadow, strength);
 }
@@ -173,7 +185,7 @@ float GetSingleShadowAuttenWithCascade(ShadowParam param)
 	param.strength = strength;
 	if(_ShadowStrength[param.light_index] * param.strength <= 0)
 	{
-		return GetBakedShadow(param.shadow_mask, _ShadowStrength[param.light_index]);
+		return GetBakedShadow(param.shadow_mask, abs(_ShadowStrength[param.light_index]));
 	}
 	//判断是否在剔除距离内
 	if(param.depth > _ShadowMaxDistance)

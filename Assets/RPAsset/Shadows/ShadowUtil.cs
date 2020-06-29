@@ -55,6 +55,7 @@ public class ShadowUtil
 
     static string[] m_shadow_mask_keywords =
     {
+        "_SHADOW_MASK_ALWAYS",
         "_SHADOW_MASK_DISTANCE"
     };
     bool UseShadowMask;
@@ -272,6 +273,10 @@ public class ShadowUtil
                 splitData.shadowCascadeBlendCullingFactor = cullingFactor;
                 settings.splitData = splitData;
                 AddLightShadowParam(i, m_cull_res.visibleLights.Length, j,viewMatrix, projectionMatrix, ref splitData);
+                if(light.light.shadows == LightShadows.None || light.light.shadowStrength <= 0f || !m_cull_res.GetShadowCasterBounds(i, out Bounds b))
+                {
+                    continue;
+                }  
                 m_cmd_buffer.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
                 m_cmd_buffer.SetViewport(GetShadowMapRect(i, j, m_cull_res.visibleLights.Length, cascade_tile_size));
                 m_cmd_buffer.SetGlobalDepthBias(0f, m_cull_res.visibleLights[i].light.shadowBias);
@@ -293,6 +298,7 @@ public class ShadowUtil
             {
                 continue;
             }
+            
             //设置shadow渲染参数
             ShadowDrawingSettings settings = new ShadowDrawingSettings(m_cull_res, i);
             m_cull_res.ComputeDirectionalShadowMatricesAndCullingPrimitives(
@@ -301,6 +307,10 @@ public class ShadowUtil
 			out ShadowSplitData splitData);
             settings.splitData = splitData;
             AddLightShadowParam(i, m_cull_res.visibleLights.Length, 0,viewMatrix, projectionMatrix, ref splitData);
+            if(light.light.shadows == LightShadows.None || light.light.shadowStrength <= 0f || !m_cull_res.GetShadowCasterBounds(i, out Bounds b))
+            {
+                continue;
+            } 
             m_cmd_buffer.SetViewProjectionMatrices(viewMatrix, projectionMatrix);
             m_cmd_buffer.SetViewport(GetShadowMapRect(i, 0, m_cull_res.visibleLights.Length, TileSize));
             m_cmd_buffer.SetGlobalDepthBias(0f, m_cull_res.visibleLights[i].light.shadowBias);
@@ -320,7 +330,8 @@ public class ShadowUtil
        {
            DrawShadowWithoutCascade();
        }
-       SetShaderKeyword(m_shadow_mask_keywords[0], UseShadowMask);
+       int index = QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 0 : 1;
+       SetShaderKeyword(m_shadow_mask_keywords[index], UseShadowMask);
     }
 
     void SetPreRenderDrawSetting()
