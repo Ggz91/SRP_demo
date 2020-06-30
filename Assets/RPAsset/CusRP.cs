@@ -61,7 +61,7 @@ public class CusRP : RenderPipeline
         }
         drawing_setting.enableDynamicBatching = m_param.DynamicBatcher;
         drawing_setting.enableInstancing = m_param.GPUInstancing;
-        drawing_setting.perObjectData = PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume;
+        drawing_setting.perObjectData = PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume | PerObjectData.ShadowMask | PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume;
     }
     void DrawOpaque(ScriptableRenderContext context, SortingSettings sortingSettings, CullingResults cull_res)
     {
@@ -203,7 +203,6 @@ public class CusRP : RenderPipeline
     void SetupLights(Unity.Collections.NativeArray<VisibleLight> lights)
     {
         m_light_util.Setup(lights);
-
     }
     #endregion
 

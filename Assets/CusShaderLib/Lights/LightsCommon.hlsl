@@ -16,8 +16,8 @@ struct Surface
     #endif
 };
 
-#include "../CusShaderLib/BakedLights/GI.hlsl"
 #include "../CusShaderLib/Shadows/ShadowCommon.hlsl"
+#include "../CusShaderLib/BakedLights/GI.hlsl"
 
 #define MAX_LIGHTS_NUM 4
 #define MIN_REFLECTIVITY 0.04
@@ -67,36 +67,42 @@ float4 GetBRDF(float4 light_dir, float4 color, Surface surface)
     return brdf_col;
 }
 
-float4 GetSingleLightsColor(int index, Surface surface)
+float4 GetSingleLightsColor(int index, Surface surface, GI gi)
 {
-    //加入lightMap的影响
-    GI gi = GetGI(surface);
+    
     float4 dir = -_LightsDirections[index];
     float4 color = _LightsColors[index];
     color.rgb += gi.diffuse * CalDiffuse(surface).rgb;
-    
+    //return float4(gi.shadow_mask.shadows.rgb, 1);
     float4 light_color = saturate(dot(surface.normal_ws, dir.xyz))*color;
     return light_color * GetBRDF(dir, color, surface);
 }
 
 float4 GetLightsColor(Surface surface)
 {
+
     float4 color = 0;
     //加入阴影的影响
-    ShadowParam shadow;
+    ShadowParam shadow = (ShadowParam)0;
     //加入normal bias
     shadow.is_mul_lights = _LightsCount > 1;
 	shadow.depth = -TransformWorldToView(surface.pos_ws.xyz).z;
     shadow.pos_ws = surface.pos_ws;
     shadow.normal_ws = surface.normal_ws;
     shadow.index = 0;
+    
+    //加入lightMap的影响
+    GI gi = GetGI(surface);
+    shadow.shadow_mask = gi.shadow_mask;
+    
     #if defined(_CASCADE_DITHER)
     shadow.dither = InterleavedGradientNoise(surface.pos.xy, 0);
     #endif
     for(int i=0; i<_LightsCount; ++i)
     {
         shadow.light_index = i;
-        color +=  GetSingleLightsColor(i, surface) * GetSingleShadowAutten(shadow);
+        shadow.shadow_mask_channel = _ShadowMaskChannel[i];
+        color += GetSingleLightsColor(i, surface, gi) * GetSingleShadowAutten(shadow);
     }
 
    

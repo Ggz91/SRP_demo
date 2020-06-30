@@ -44,6 +44,7 @@ Shader "CusRP/CusLitShader"
             #pragma multi_compile _ _PCF3x3 _PCF5x5 _PCF7x7
             #pragma shader_feature _CASCADE_DITHER
             #pragma shader_feature _RECEIVE_SHADOW
+            #pragma multi_compile _ _SHADOW_MASK_ALWAYS _SHADOW_MASK_DISTANCE
             UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
                 UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Clip)
@@ -110,11 +111,12 @@ Shader "CusRP/CusLitShader"
                 surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
                 surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic);
                 surface.pos = indata.pos.xyz;
+
                 COPY_GI_DATA(indata, surface)
                 color.xyz = GetLightsColor(surface).xyz;
                 //加入自发光
                 float4 emisson = tex2D(_EmissionMap, indata.uv.xy) * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _EmissionColor);
-                color.xyz += emisson.xyz;
+                //color.xyz += emisson.xyz;
                 return color;
             }
             ENDHLSL
@@ -238,7 +240,6 @@ Shader "CusRP/CusLitShader"
                 if(unity_MetaVertexControl.y)
                 {
                     input.pos.xy = input.uv2 * unity_DynamicLightmapST.xy + unity_DynamicLightmapST.zw;
-
                 }
                 else if (unity_MetaVertexControl.x)
                 {
@@ -287,6 +288,7 @@ Shader "CusRP/CusLitShader"
 
                     meta = float4(emission.xyz, 1.0);
                 }
+                meta = float4(1, 1, 1, 1);
                 return meta;
             }
             ENDHLSL

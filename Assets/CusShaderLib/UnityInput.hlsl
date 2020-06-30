@@ -21,6 +21,7 @@ CBUFFER_START(UnityPerDraw)
 	float4 unity_ProbeVolumeMin;
 	bool4 unity_MetaFragmentControl;
 	bool4 unity_MetaVertexControl;
+	float4 unity_ProbesOcclusion;
 CBUFFER_END
 
 float4x4 unity_MatrixVP;

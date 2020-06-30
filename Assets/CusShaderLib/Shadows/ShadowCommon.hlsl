@@ -32,7 +32,15 @@ CBUFFER_START(CusShadows)
 	float4 _ShadowCascadeData[MAX_SHADOW_LIGHTS_COUNT * MAX_CASCADE_COUNT];
 	float4 _ShadowAltasSize;
 	float _ShadowCascadeBlend;
+	float _ShadowMaskChannel[MAX_SHADOW_LIGHTS_COUNT];
 CBUFFER_END
+
+struct ShadowMask
+{
+	bool always;
+	bool distance;
+	float4 shadows;
+};
 
 struct ShadowParam
 {
@@ -47,10 +55,12 @@ struct ShadowParam
 	#if defined(_CASCADE_DITHER)
 		float dither;
 	#endif
+	ShadowMask shadow_mask;
+	int shadow_mask_channel;
 };
 float GetShadowStrength(ShadowParam param)
 {
-	float strength = _ShadowStrength[param.light_index];
+	float strength = 1;//_ShadowStrength[param.light_index];
 	
 	float fade = (1 - param.depth * _ShadowFadeParam.x) * _ShadowFadeParam.y;
 	//最后边缘的阴影表现
@@ -58,14 +68,57 @@ float GetShadowStrength(ShadowParam param)
 	{
 		fade *= (1 - param.depth * param.depth * _ShadowCascadeData[param.index].x * _ShadowCascadeData[param.index].x) * _ShadowFadeParam.z;
 	}
-	return strength;
+	fade = saturate(fade);
+	return strength * fade;
+}
+float GetBakedShadow(ShadowMask mask, int channel)
+{
+	float shadow = 1.0f;
+	if(mask.distance || mask.always)
+	{
+		if(channel >= 0)
+		{
+			shadow = mask.shadows[channel];
+		}
+	}
+	return shadow;
+}
+float GetBakedShadow(ShadowMask mask, float strength, int channel)
+{
+	if(mask.distance || mask.always)
+	{
+		return lerp(1.0, GetBakedShadow(mask, channel), strength);
+	}
+	return 1.0f;
+}
+float MixBakeAndRealtimeShadows(ShadowParam global, float shadow, float strength)
+{
+	float baked = GetBakedShadow(global.shadow_mask, global.shadow_mask_channel);
+	if(global.shadow_mask.always)
+	{
+		shadow = lerp(1.0, shadow, strength);
+		shadow = min(baked, shadow);
+		return lerp(1.0, shadow, _ShadowStrength[global.light_index]);
+	}
+	if(global.shadow_mask.distance)
+	{
+		shadow = lerp(baked, shadow, strength);
+		return lerp(1.0, shadow, _ShadowStrength[global.light_index]);
+	}
+	return lerp(1.0, shadow, strength * _ShadowStrength[global.light_index]);
 }
 float GetSingleShadowAuttenWithoutCascade(ShadowParam param)
 {
+	float strength = GetShadowStrength(param);
+	param.strength = strength;
+	if(_ShadowStrength[param.light_index] * param.strength <= 0)
+	{
+		return GetBakedShadow(param.shadow_mask, abs(_ShadowStrength[param.light_index]), param.shadow_mask_channel);
+	}
 	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.light_index];
 	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
-	float strength = GetShadowStrength(param);
-	return lerp(1.0f, SAMPLE_TEXTURE2D_SHADOW(_ShadowMapAltas, SHADOW_SAMPLER, pos_ls), strength);
+	float shadow = SAMPLE_TEXTURE2D_SHADOW(_ShadowMapAltas, SHADOW_SAMPLER, pos_ls);
+	return MixBakeAndRealtimeShadows(param, shadow, strength);
 }
 
 float SquareDistance(float3 orig, float3 dst)
@@ -130,11 +183,15 @@ float GetSingleCacasdeAutten(float4 pos_ls)
 	#endif
 	return shadow;
 }
+
+
 float GetSingleShadowAuttenWithCascade(ShadowParam param)
 {
-	if(_ShadowStrength[param.light_index] <= 0)
+	float strength = GetShadowStrength(param);
+	param.strength = strength;
+	if(_ShadowStrength[param.light_index] * param.strength <= 0)
 	{
-		return 1.0f;
+		return GetBakedShadow(param.shadow_mask, abs(_ShadowStrength[param.light_index]), param.shadow_mask_channel);
 	}
 	//判断是否在剔除距离内
 	if(param.depth > _ShadowMaxDistance)
@@ -146,7 +203,6 @@ float GetSingleShadowAuttenWithCascade(ShadowParam param)
 	param.cascade_index = indics.x;
 	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.index];
 	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
-	float strength = GetShadowStrength(param);
 	float shadow = GetSingleCacasdeAutten(pos_ls);
 	#if !defined(_CASCADE_DITHER)
 		if(_ShadowCascadeBlend<0.999f && param.cascade_index != (MAX_CASCADE_COUNT-1))
@@ -161,7 +217,7 @@ float GetSingleShadowAuttenWithCascade(ShadowParam param)
 		}
 	#endif
 	
-	return lerp(1.0f, shadow, strength);
+	return MixBakeAndRealtimeShadows(param, shadow, strength);
 }
 
 float GetSingleShadowAutten(ShadowParam param)
