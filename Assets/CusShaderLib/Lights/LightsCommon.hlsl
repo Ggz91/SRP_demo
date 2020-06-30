@@ -80,6 +80,7 @@ float4 GetSingleLightsColor(int index, Surface surface, GI gi)
 
 float4 GetLightsColor(Surface surface)
 {
+
     float4 color = 0;
     //加入阴影的影响
     ShadowParam shadow = (ShadowParam)0;
@@ -97,12 +98,11 @@ float4 GetLightsColor(Surface surface)
     #if defined(_CASCADE_DITHER)
     shadow.dither = InterleavedGradientNoise(surface.pos.xy, 0);
     #endif
-
     for(int i=0; i<_LightsCount; ++i)
     {
         shadow.light_index = i;
         shadow.shadow_mask_channel = _ShadowMaskChannel[i];
-        color +=  GetSingleLightsColor(i, surface, gi) * GetSingleShadowAutten(shadow);
+        color += GetSingleLightsColor(i, surface, gi) * GetSingleShadowAutten(shadow);
     }
 
    

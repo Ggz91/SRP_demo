@@ -68,6 +68,7 @@ float GetShadowStrength(ShadowParam param)
 	{
 		fade *= (1 - param.depth * param.depth * _ShadowCascadeData[param.index].x * _ShadowCascadeData[param.index].x) * _ShadowFadeParam.z;
 	}
+	fade = saturate(fade);
 	return strength * fade;
 }
 float GetBakedShadow(ShadowMask mask, int channel)
@@ -116,7 +117,7 @@ float GetSingleShadowAuttenWithoutCascade(ShadowParam param)
 	}
 	float4x4 ls_matrix = _ShadowLightSpaceTransformMatrics[param.light_index];
 	float4 pos_ls = mul(ls_matrix, float4(param.pos_ws + param.normal_ws * _ShadowNormalBias[param.light_index], 1));
-	float shadow = lerp(1.0f, SAMPLE_TEXTURE2D_SHADOW(_ShadowMapAltas, SHADOW_SAMPLER, pos_ls), strength);
+	float shadow = SAMPLE_TEXTURE2D_SHADOW(_ShadowMapAltas, SHADOW_SAMPLER, pos_ls);
 	return MixBakeAndRealtimeShadows(param, shadow, strength);
 }
 

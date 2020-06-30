@@ -111,9 +111,7 @@ Shader "CusRP/CusLitShader"
                 surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
                 surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic);
                 surface.pos = indata.pos.xyz;
-                #ifdef LIGHTMAP_ON 
-                surface.lightmap_uv = indata.uv.xy * unity_LightmapST.xy + unity_LightmapST.zw;
-                #endif
+
                 COPY_GI_DATA(indata, surface)
                 color.xyz = GetLightsColor(surface).xyz;
                 //加入自发光
