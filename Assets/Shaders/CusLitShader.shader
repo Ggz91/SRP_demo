@@ -45,6 +45,7 @@ Shader "CusRP/CusLitShader"
             #pragma shader_feature _CASCADE_DITHER
             #pragma shader_feature _RECEIVE_SHADOW
             #pragma multi_compile _ _SHADOW_MASK_ALWAYS _SHADOW_MASK_DISTANCE
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
                 UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Clip)
@@ -96,6 +97,7 @@ Shader "CusRP/CusLitShader"
                     clip(tex_col.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Clip));
                 #endif
                 UNITY_SETUP_INSTANCE_ID(indata);
+                ClipLod(indata.pos.xy, unity_LODFade.x);
                 float4 color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Color) * tex_col;
                 //加入光照影响
                 Surface surface;
@@ -116,7 +118,7 @@ Shader "CusRP/CusLitShader"
                 color.xyz = GetLightsColor(surface).xyz;
                 //加入自发光
                 float4 emisson = tex2D(_EmissionMap, indata.uv.xy) * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _EmissionColor);
-                //color.xyz += emisson.xyz;
+                color.xyz += emisson.xyz;
                 return color;
             }
             ENDHLSL
@@ -134,6 +136,7 @@ Shader "CusRP/CusLitShader"
             #pragma fragment frag
 			#pragma shader_feature _SHADOW_CLIP
 			#pragma multi_compile_instancing
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             
 			 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
                 UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
@@ -184,6 +187,10 @@ Shader "CusRP/CusLitShader"
                 #if defined(_SHADOW_CLIP)
                     clip(tex_col.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Clip));
                 #endif
+                ClipLod(indata.pos.xy, unity_LODFade.x);
+                /*#if defined(LOD_FADE_CROSSFADE)
+                    return unity_LODFade.x;
+                #endif*/
             }
 
 			ENDHLSL
