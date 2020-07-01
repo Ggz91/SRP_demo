@@ -15,10 +15,12 @@ Shader "CusRP/CusLitShader"
         _Clip("Clip", Range(0.0, 1.0)) = 0.5
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.8 
         _Metallic("Metallic", Range(0.0, 1.0)) = 0.8
+        _Fresnel("Fresnel", Range(0, 1)) = 1
         [Toggle(_ALPHATODIFFUSE)] _AlphaToDiffuse("Apply alpha to diffuse", float) = 1
         [Toggle(_SHADOW_CLIP)] _ShadowClip("Shadow Clip", float) = 1
         [Toggle(_RECEIVE_SHADOW)] _RecevieShadow("Recevie Shadow", float) = 1
         [HideInInspector] _MainTex("Texture for Lightmap", 2D) = "white" {}
+
     }
     SubShader
     {
@@ -50,6 +52,7 @@ Shader "CusRP/CusLitShader"
                 UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Clip)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Smoothness)
+                UNITY_DEFINE_INSTANCED_PROP(float, _Fresnel)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)
                 UNITY_DEFINE_INSTANCED_PROP(float4, _EmissionColor)
             UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
@@ -111,6 +114,7 @@ Shader "CusRP/CusLitShader"
                 surface.normal_ws = normalize( indata.normal_ws);
                 surface.view_dir = normalize(_WorldSpaceCameraPos -indata.pos_ws);
                 surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
+                surface.fresnel = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Fresnel);
                 surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic);
                 surface.pos = indata.pos.xyz;
 

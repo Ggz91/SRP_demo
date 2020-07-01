@@ -61,7 +61,7 @@ public class CusRP : RenderPipeline
         }
         drawing_setting.enableDynamicBatching = m_param.DynamicBatcher;
         drawing_setting.enableInstancing = m_param.GPUInstancing;
-        drawing_setting.perObjectData = PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume | PerObjectData.ShadowMask | PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume;
+        drawing_setting.perObjectData = PerObjectData.ReflectionProbes | PerObjectData.Lightmaps | PerObjectData.LightProbe | PerObjectData.LightProbeProxyVolume | PerObjectData.ShadowMask | PerObjectData.OcclusionProbe | PerObjectData.OcclusionProbeProxyVolume;
     }
     void DrawOpaque(ScriptableRenderContext context, SortingSettings sortingSettings, CullingResults cull_res)
     {
