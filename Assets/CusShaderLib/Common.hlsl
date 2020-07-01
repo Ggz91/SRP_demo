@@ -18,4 +18,12 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
 
+void ClipLod(float2 pos_cs, float fade)
+{
+    #if defined(LOD_FADE_CROSSFADE)
+        float dither = InterleavedGradientNoise(pos_cs.xy, 0);
+        clip(fade + (fade < 0.0 ? dither : -dither));
+    #endif
+}
+
 #endif

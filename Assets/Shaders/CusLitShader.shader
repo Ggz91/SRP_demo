@@ -15,10 +15,12 @@ Shader "CusRP/CusLitShader"
         _Clip("Clip", Range(0.0, 1.0)) = 0.5
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.8 
         _Metallic("Metallic", Range(0.0, 1.0)) = 0.8
+        _Fresnel("Fresnel", Range(0, 1)) = 1
         [Toggle(_ALPHATODIFFUSE)] _AlphaToDiffuse("Apply alpha to diffuse", float) = 1
         [Toggle(_SHADOW_CLIP)] _ShadowClip("Shadow Clip", float) = 1
         [Toggle(_RECEIVE_SHADOW)] _RecevieShadow("Recevie Shadow", float) = 1
         [HideInInspector] _MainTex("Texture for Lightmap", 2D) = "white" {}
+
     }
     SubShader
     {
@@ -45,10 +47,12 @@ Shader "CusRP/CusLitShader"
             #pragma shader_feature _CASCADE_DITHER
             #pragma shader_feature _RECEIVE_SHADOW
             #pragma multi_compile _ _SHADOW_MASK_ALWAYS _SHADOW_MASK_DISTANCE
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
                 UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Clip)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Smoothness)
+                UNITY_DEFINE_INSTANCED_PROP(float, _Fresnel)
                 UNITY_DEFINE_INSTANCED_PROP(float, _Metallic)
                 UNITY_DEFINE_INSTANCED_PROP(float4, _EmissionColor)
             UNITY_INSTANCING_BUFFER_END(UnityPerMaterial)
@@ -96,6 +100,7 @@ Shader "CusRP/CusLitShader"
                     clip(tex_col.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Clip));
                 #endif
                 UNITY_SETUP_INSTANCE_ID(indata);
+                ClipLod(indata.pos.xy, unity_LODFade.x);
                 float4 color = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Color) * tex_col;
                 //加入光照影响
                 Surface surface;
@@ -109,6 +114,7 @@ Shader "CusRP/CusLitShader"
                 surface.normal_ws = normalize( indata.normal_ws);
                 surface.view_dir = normalize(_WorldSpaceCameraPos -indata.pos_ws);
                 surface.smoothness = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Smoothness);
+                surface.fresnel = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Fresnel);
                 surface.metallic = UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Metallic);
                 surface.pos = indata.pos.xyz;
 
@@ -116,7 +122,7 @@ Shader "CusRP/CusLitShader"
                 color.xyz = GetLightsColor(surface).xyz;
                 //加入自发光
                 float4 emisson = tex2D(_EmissionMap, indata.uv.xy) * UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _EmissionColor);
-                //color.xyz += emisson.xyz;
+                color.xyz += emisson.xyz;
                 return color;
             }
             ENDHLSL
@@ -134,6 +140,7 @@ Shader "CusRP/CusLitShader"
             #pragma fragment frag
 			#pragma shader_feature _SHADOW_CLIP
 			#pragma multi_compile_instancing
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             
 			 UNITY_INSTANCING_BUFFER_START(UnityPerMaterial)
                 UNITY_DEFINE_INSTANCED_PROP(float4, _Color)
@@ -184,6 +191,10 @@ Shader "CusRP/CusLitShader"
                 #if defined(_SHADOW_CLIP)
                     clip(tex_col.a - UNITY_ACCESS_INSTANCED_PROP(UnityPerMaterial, _Clip));
                 #endif
+                ClipLod(indata.pos.xy, unity_LODFade.x);
+                /*#if defined(LOD_FADE_CROSSFADE)
+                    return unity_LODFade.x;
+                #endif*/
             }
 
 			ENDHLSL
